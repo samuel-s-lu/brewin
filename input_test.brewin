@@ -1,0 +1,17 @@
+(class main
+    (field num1 5)
+    (field num2 "haha")
+    (method main ()
+        (begin
+            (print "2+7: " (+ 2 7))
+            (print "old num1: " num1)
+            (print "enter new int value for num1")
+            (inputi num1)
+            (print "new num1: " num1)
+            (print "new num1 plus 5: " (+ num1 5))
+            (print "enter new string value for num2")
+            (inputs num2)
+            (print "new num2 concatenated with 'haha': " (+ num2 "haha"))
+        )
+    )
+)

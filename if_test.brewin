@@ -1,0 +1,15 @@
+(class main
+    (field x 5)
+    (field y "haha")
+    (method main ()
+        (begin
+            (print x)
+            (print (== 0 (% x 2)))
+            (if (== 0 (% x 2))
+                (print "x even")
+                (print "x odd")
+            )
+            (if false (print "fax") (print "printer"))
+        )
+    )
+)
