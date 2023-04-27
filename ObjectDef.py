@@ -102,7 +102,7 @@ class ObjectDef:
 
                 pred = self.resolve_exp(statement[1])
                 if not isinstance(pred, bool):
-                    self.int.erro(ET.TYPE_ERROR, "non boolean provided as condition to 'if'")
+                    self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'if'")
 
                 if pred:
                     self.run_statement(statement[2])
