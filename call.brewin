@@ -1,0 +1,15 @@
+(class main
+    (field x 5)
+    (field y "haha")
+    (method main ()
+        (begin
+            (set x (new foo))
+            (call x joke "coson")
+        )
+    )
+)
+(class foo
+    (method joke (name)
+        (print name " smells like farts")
+    )
+)

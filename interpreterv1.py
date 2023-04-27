@@ -37,7 +37,7 @@ class Interpreter(IB):
             new_class_name = str(class_def[1])
             if new_class_name in self.class_names:
                 super().error(ET.NAME_ERROR, "Duplicate class names not allowed", class_def[1].line_num)
-            new_class = ClassDef(new_class_name, super())
+            new_class = ClassDef(new_class_name, self)
 
             for token in class_def:
                 if type(token) is list:
@@ -64,11 +64,12 @@ class Interpreter(IB):
         for c in self.classes:
             if c.class_name == class_def:
                 return c
-        
+            
+        super().error(ET.NAME_ERROR, "Undefined class name")
         return None
     
 # if __name__ == '__main__':
-#     f = open('./if_test.brewin')
+#     f = open('./call2.brewin')
 #     program_lines = list(map(lambda x: x.rstrip("\n"), f.readlines()))
 #     my_int = Interpreter()
 #     my_int.run(program_lines)

@@ -1,11 +1,11 @@
-from intbase import InterpreterBase as IB
+# from interpreterv1 import Interpreter
 from intbase import ErrorType as ET
 from util import remove_line_num
 from MethodDef import MethodDef
 from VariableDef import VariableDef
 
 class ObjectDef:
-    def __init__(self, category, fields:set[VariableDef], methods:set[MethodDef], interpreter:IB):
+    def __init__(self, category, fields:set[VariableDef], methods:set[MethodDef], interpreter):
         self.category = category
         self.fields = fields
         self.methods = methods
@@ -14,6 +14,8 @@ class ObjectDef:
         self.fields_dict = {name:value for name, value in zip([x.name for x in fields], [x.value for x in fields])}
         self.params = None
         self.params_dict = None
+
+        self.objects = set()
 
     def __str__(self):
         return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\n'
@@ -24,6 +26,9 @@ class ObjectDef:
     
     def call_method(self, method_name, param_vals):
         method = self.find_method(method_name)
+        # print(method)
+        # print(f'method args: {method.args}')
+        # print(f'param vals: {param_vals}')
         if not method:
             self.int.error(ET.NAME_ERROR, "Method not found")
         
@@ -34,7 +39,9 @@ class ObjectDef:
         if param_vals:
             self.params = {VariableDef(n, v) for n, v in zip([x for x in method.args], [x for x in param_vals])}
             self.params_dict = {name:value for name, value in zip(method.args, param_vals)}
-
+        #     print(f'self params: {self.params}')
+        #     print(f'self params dict: {self.params_dict}')
+        # print(f'statement: {statement}')
         res = self.run_statement(statement)
         return res
 
@@ -64,7 +71,9 @@ class ObjectDef:
                 # print(f'Old fields: {self.fields}')
 
                 target_name = statement[1]
+                # print(f'target name: {target_name}')
                 new_val = self.resolve_exp(statement[2])
+                # print(f'new val: {new_val}\n===\n')
 
                 self.set_var(target_name, new_val)
 
@@ -89,11 +98,57 @@ class ObjectDef:
                 return
             
             case self.int.IF_DEF:
+                if len(statement) > 4:
+                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'if'")
+
                 pred = self.resolve_exp(statement[1])
+                if not isinstance(pred, bool):
+                    self.int.erro(ET.TYPE_ERROR, "non boolean provided as condition to 'if'")
+
                 if pred:
                     self.run_statement(statement[2])
                 else:
-                    self.run_statement(statement[3])
+                    if len(statement) == 4:
+                        self.run_statement(statement[3])
+
+            case self.int.WHILE_DEF:
+                if len(statement) > 3:
+                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'while'")
+
+                pred = self.resolve_exp(statement[1])
+                if not isinstance(pred, bool):
+                    self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'while'")
+
+                while pred:
+                    self.run_statement(statement[2])
+                    pred = self.resolve_exp(statement[1])
+
+                return
+            
+            case self.int.CALL_DEF:
+                obj_name = statement[1]
+                method_name = statement[2]
+                method_params = [self.resolve_exp(p) for p in statement[3:]]
+                # print(statement[3:])
+                # print(method_params)
+
+                res = None
+                if obj_name == 'me':
+                    # print(method_name)
+                    self.call_method(method_name, method_params)
+                else:
+                    # print(f'params dict: {self.params_dict}')
+                    obj_var, isParam = self.find_var(obj_name)
+                    res = self.params_dict[obj_name].call_method(method_name, method_params) if isParam else self.fields_dict[obj_name].call_method(method_name, method_params)
+
+                return res
+            
+            case self.int.RETURN_DEF:
+                return
+
+
+    # def find_obj(self, obj_name)
+
 
     def set_var(self, target_name, new_val):
         var, isParam = self.find_var(target_name)
@@ -102,6 +157,7 @@ class ObjectDef:
             self.update_var(var, isParam, new_val)
         else:
             self.int.error(ET.NAME_ERROR, "Undefined variable")
+        
 
 
 
@@ -123,19 +179,22 @@ class ObjectDef:
     def update_var(self, var:VariableDef, isParam, new_val):
         # update set of variables
         var.update(new_val)
+        # print(f'var: {var}')
 
         # update dictionary of name to value pairs
         if isParam:
             self.params_dict[var.name] = new_val
         else:
             self.fields_dict[var.name] = new_val
+        
+        # print(f'fields dict: {self.fields_dict}')
 
 
     def resolve_exp(self, exp):
         if type(exp) is not list:
             return self.unwrap_simp_exp(exp)
         
-        special_exps = {'new', 'call', '!'}
+        special_exps = {'new', '!'}
         if exp[0] not in special_exps:
             arg1 = self.resolve_exp(exp[1])
             arg2 = self.resolve_exp(exp[2])
@@ -213,18 +272,27 @@ class ObjectDef:
                     return not arg
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible type using the ! operator")
+            case self.int.NEW_DEF:
+                class_name = exp[1]
+                class_def = self.int.find_class_def(class_name)
+                new_obj = class_def.instantiate_object()
+                
+                return new_obj
 
         return res
 
 
     def unwrap_simp_exp(self,exp):
         exp, isVar = remove_line_num(exp)
-        # valid variable
-        if isVar and  exp in self.fields_dict.keys():
+        # valid variable within parameters
+        if isVar and self.params and exp in self.params_dict.keys():
+            exp = self.params_dict[exp]
+        # valid variable within fields
+        elif isVar and  exp in self.fields_dict.keys():
             exp = self.fields_dict[exp]
-        #invalid variable
-        elif isVar and exp not in self.fields_dict.keys():
-            self.int.error(ET.NAME_ERROR, "Undefined variable")
+        # invalid variable
+        elif isVar and (exp not in self.fields_dict.keys() and exp not in self.params_dict.keys()):
+            self.int.error(ET.NAME_ERROR, f"Undefined variable: {exp}")
         return exp
 
 
