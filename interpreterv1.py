@@ -67,10 +67,3 @@ class Interpreter(IB):
             
         super().error(ET.NAME_ERROR, "Undefined class name")
         return None
-    
-# if __name__ == '__main__':
-#     f = open('./call2.brewin')
-#     program_lines = list(map(lambda x: x.rstrip("\n"), f.readlines()))
-#     my_int = Interpreter()
-#     my_int.run(program_lines)
-#     f.close()

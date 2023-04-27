@@ -12,9 +12,8 @@ class ObjectDef:
         self.int = interpreter
 
         self.fields_dict = {name:value for name, value in zip([x.name for x in fields], [x.value for x in fields])}
-        self.params = None
-        self.params_dict = None
-
+        self.params = dict()
+        self.params_dict = dict()
         self.objects = set()
 
     def __str__(self):
@@ -127,6 +126,9 @@ class ObjectDef:
             
             case self.int.CALL_DEF:
                 obj_name = statement[1]
+                if self.resolve_exp(obj_name) == None:
+                    self.int.error(ET.FAULT_ERROR, "Deferencing null object")
+                # print(type(self.resolve_exp(obj_name)))
                 method_name = statement[2]
                 method_params = [self.resolve_exp(p) for p in statement[3:]]
                 # print(statement[3:])
@@ -138,13 +140,18 @@ class ObjectDef:
                     self.call_method(method_name, method_params)
                 else:
                     # print(f'params dict: {self.params_dict}')
-                    obj_var, isParam = self.find_var(obj_name)
-                    res = self.params_dict[obj_name].call_method(method_name, method_params) if isParam else self.fields_dict[obj_name].call_method(method_name, method_params)
+                    # obj_var, isParam = self.find_var(obj_name)
+                    res = self.fields_dict[obj_name].call_method(method_name, method_params)
 
                 return res
             
             case self.int.RETURN_DEF:
-                return
+                if len(statement) > 2:
+                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'return'")
+                # ret_val = None
+                if len(statement) == 2:
+                    ret_val = self.resolve_exp(statement[1])
+                    return ret_val
 
 
     # def find_obj(self, obj_name)
@@ -194,7 +201,7 @@ class ObjectDef:
         if type(exp) is not list:
             return self.unwrap_simp_exp(exp)
         
-        special_exps = {'new', '!'}
+        special_exps = {'new', 'call', '!'}
         if exp[0] not in special_exps:
             arg1 = self.resolve_exp(exp[1])
             arg2 = self.resolve_exp(exp[2])
@@ -227,7 +234,9 @@ class ObjectDef:
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the / operator")
             case '==':
-                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2):
+                # print(f'arg1 arg2: {arg1} {arg2}')
+                # print(f'both obj: {self.both_obj(arg1,arg2)}')
+                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2) or self.both_obj(arg1, arg2):
                     return arg1 == arg2
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the == operator")
@@ -272,18 +281,41 @@ class ObjectDef:
                     return not arg
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible type using the ! operator")
+
             case self.int.NEW_DEF:
                 class_name = exp[1]
                 class_def = self.int.find_class_def(class_name)
                 new_obj = class_def.instantiate_object()
                 
                 return new_obj
+            
+            case self.int.CALL_DEF:
+                obj_name = exp[1]
+                # if the target object name is a variable and it resolves to None, throw error
+                if (obj_name in self.fields_dict.keys()) and self.resolve_exp(obj_name) == None:
+                    self.int.error(ET.FAULT_ERROR, "Deferencing null object")
+                # print(type(self.resolve_exp(obj_name)))
+                method_name = exp[2]
+                method_params = [self.resolve_exp(p) for p in exp[3:]]
+                # print(statement[3:])
+                # print(method_params)
 
+                res = None
+                if obj_name == 'me':
+                    # print(method_name)
+                    res = self.call_method(method_name, method_params)
+                else:
+                    # print(f'params dict: {self.params_dict}')
+                    # obj_var, isParam = self.find_var(obj_name)
+                    res = self.fields_dict[obj_name].call_method(method_name, method_params)
+
+                return res
         return res
 
 
     def unwrap_simp_exp(self,exp):
         exp, isVar = remove_line_num(exp)
+        # print(f'expressions: {exp}, isVar: {isVar}')
         # valid variable within parameters
         if isVar and self.params and exp in self.params_dict.keys():
             exp = self.params_dict[exp]
@@ -305,6 +337,10 @@ class ObjectDef:
     
     def both_bool(self, arg1, arg2):
         return isinstance(arg1, bool) and isinstance(arg2, bool)
+    
+    def both_obj(self, arg1, arg2):
+        # true if both none, or one none one obj, or both obj
+        return (not arg1 and not arg2) or ((not arg1 or not arg2) and (isinstance(arg1, ObjectDef)) or isinstance(arg2, ObjectDef)) or (isinstance(arg1, ObjectDef) and isinstance(arg2, ObjectDef))
 
 
     def find_method(self, method_name):

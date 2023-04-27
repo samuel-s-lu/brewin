@@ -4,16 +4,9 @@
     (method main ()
         (begin
             (print (== x null))
+            (print (== null null))
             (set x (new foo))
             (print (== x null))
-            (print (== null null))
-            (print (== x (new foo)))
-            (call x joke "coson")
         )
-    )
-)
-(class foo
-    (method joke (name)
-        (print name " smells like farts")
     )
 )
