@@ -130,3 +130,8 @@ dmypy.json
 
 # mac stuff *shakes fist*
 .DS_Store
+
+# stuff i wanna ignore
+*.brewin
+tester.py
+update.sh
