@@ -38,10 +38,11 @@ class ObjectDef:
         if param_vals:
             self.params = {VariableDef(n, v) for n, v in zip([x for x in method.args], [x for x in param_vals])}
             self.params_dict = {name:value for name, value in zip(method.args, param_vals)}
-        #     print(f'self params: {self.params}')
-        #     print(f'self params dict: {self.params_dict}')
+            # print(f'self params: {self.params}')
+            # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
         res = self.run_statement(statement)
+        # print(f'run statement result: {res}')
         return res
 
 
@@ -60,8 +61,8 @@ class ObjectDef:
                 self.int.output(res)
                 return
             case self.int.SET_DEF:
-                if len(statement) != 3:
-                    self.int.error(ET.SYNTAX_ERROR, "Incorrect number of arguments for 'set'")
+                # if len(statement) != 3:
+                #     self.int.error(ET.SYNTAX_ERROR, "Incorrect number of arguments for 'set'")
 
                 # if self.params:
                 #     print(f'Old params: {self.params}')
@@ -84,8 +85,8 @@ class ObjectDef:
 
             case self.int.BEGIN_DEF:
                 for i in range(1,len(statement)):
-                    self.run_statement(statement[i])
-                return
+                    res = self.run_statement(statement[i])
+                return res
             
             case self.int.INPUT_INT_DEF | self.int.INPUT_STRING_DEF:
                 target_name = statement[1]
@@ -105,10 +106,12 @@ class ObjectDef:
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'if'")
 
                 if pred:
-                    self.run_statement(statement[2])
+                    res = self.run_statement(statement[2])
                 else:
                     if len(statement) == 4:
-                        self.run_statement(statement[3])
+                        res = self.run_statement(statement[3])
+                
+                return res
 
             case self.int.WHILE_DEF:
                 if len(statement) > 3:
@@ -119,10 +122,10 @@ class ObjectDef:
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'while'")
 
                 while pred:
-                    self.run_statement(statement[2])
+                    res = self.run_statement(statement[2])
                     pred = self.resolve_exp(statement[1])
 
-                return
+                return res
             
             case self.int.CALL_DEF:
                 obj_name = statement[1]
@@ -137,7 +140,7 @@ class ObjectDef:
                 res = None
                 if obj_name == 'me':
                     # print(method_name)
-                    self.call_method(method_name, method_params)
+                    res = self.call_method(method_name, method_params)
                 else:
                     # print(f'params dict: {self.params_dict}')
                     # obj_var, isParam = self.find_var(obj_name)
@@ -151,10 +154,11 @@ class ObjectDef:
                 # ret_val = None
                 if len(statement) == 2:
                     ret_val = self.resolve_exp(statement[1])
+                    # print(statement)
+                    # print(f'ret val: {ret_val}')
                     return ret_val
-
-
-    # def find_obj(self, obj_name)
+                else:
+                    return
 
 
     def set_var(self, target_name, new_val):
@@ -169,7 +173,7 @@ class ObjectDef:
 
 
     def find_var(self, target_name):
-        if (self.params and target_name not in self.params_dict.keys()) and (target_name not in self.fields_dict.keys()):
+        if (target_name not in self.params_dict.keys()) and (target_name not in self.fields_dict.keys()):
             self.int.error(ET.NAME_ERROR, "Undefined variable")
         if self.params:
             for var in self.params:
@@ -303,7 +307,9 @@ class ObjectDef:
                 res = None
                 if obj_name == 'me':
                     # print(method_name)
+                    # print(f'method name: {method_name}, method params: {method_params}')
                     res = self.call_method(method_name, method_params)
+                    # print(f'expression res: {res}')
                 else:
                     # print(f'params dict: {self.params_dict}')
                     # obj_var, isParam = self.find_var(obj_name)
