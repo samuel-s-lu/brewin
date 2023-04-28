@@ -130,8 +130,8 @@ class ObjectDef:
             
             case self.int.CALL_DEF:
                 obj_name = statement[1]
-                if self.resolve_exp(obj_name) == None:
-                    self.int.error(ET.FAULT_ERROR, "Deferencing null object")
+                # if self.resolve_exp(obj_name) == None:
+                #     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 # print(type(self.resolve_exp(obj_name)))
                 method_name = statement[2]
                 method_params = [self.resolve_exp(p) for p in statement[3:]]
@@ -142,6 +142,8 @@ class ObjectDef:
                 if obj_name == 'me':
                     # print(method_name)
                     res = self.call_method(method_name, method_params)
+                elif self.resolve_exp(obj_name) == None:
+                    self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 else:
                     # print(f'params dict: {self.params_dict}')
                     # obj_var, isParam = self.find_var(obj_name)
