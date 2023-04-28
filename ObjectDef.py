@@ -52,6 +52,7 @@ class ObjectDef:
                 res = ''
                 for i in range(1,len(statement)):
                     next = self.resolve_exp(statement[i])
+                    # print(next)
                     if next is True:
                         next = 'true'
                     if next is False:
@@ -158,7 +159,7 @@ class ObjectDef:
                     # print(f'ret val: {ret_val}')
                     return ret_val
                 else:
-                    return
+                    return None
 
 
     def set_var(self, target_name, new_val):
