@@ -126,6 +126,7 @@ class ObjectDef:
                 if not isinstance(pred, bool):
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'while'")
 
+                res = None
                 while pred:
                     res = self.run_statement(statement[2])
                     pred = self.resolve_exp(statement[1])
