@@ -253,7 +253,7 @@ class ObjectDef:
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the == operator")
             case '!=':
-                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2):
+                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2) or self.both_obj(arg1, arg2):
                     return arg1 != arg2
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the != operator")

@@ -36,7 +36,7 @@ class Interpreter(IB):
         for class_def in parsed_program:
             new_class_name = str(class_def[1])
             if new_class_name in self.class_names:
-                super().error(ET.NAME_ERROR, "Duplicate class names not allowed", class_def[1].line_num)
+                super().error(ET.TYPE_ERROR, "Duplicate class names not allowed", class_def[1].line_num)
             new_class = ClassDef(new_class_name, self)
 
             for token in class_def:
