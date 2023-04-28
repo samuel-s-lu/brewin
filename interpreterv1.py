@@ -17,8 +17,8 @@ class Interpreter(IB):
     def run(self, program):
         res, parsed_program = BParser.parse(program)
         
-        if not res:
-            super().error(error_type=ET.SYNTAX_ERROR, description="Parsing Error")
+        # if not res:
+        #     super().error(error_type=ET.SYNTAX_ERROR, description="Parsing Error")
                 
         # print("\n")
         self.discover_classes(parsed_program)
@@ -55,8 +55,8 @@ class Interpreter(IB):
                                 super().error(ET.NAME_ERROR, "Duplicate method names not allowed")
 
                             new_class.add_method(MethodDef(method_name, method_args, method_statement))
-                        case _:
-                            super().error(ET.SYNTAX_ERROR, 'Class can only contain field or method')
+                        # case _:
+                        #     super().error(ET.SYNTAX_ERROR, 'Class can only contain field or method')
             self.classes.add(new_class)
             self.class_names.add(new_class_name)
 

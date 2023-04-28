@@ -103,8 +103,8 @@ class ObjectDef:
                 return
             
             case self.int.IF_DEF:
-                if len(statement) > 4:
-                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'if'")
+                # if len(statement) > 4:
+                #     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'if'")
 
                 pred = self.resolve_exp(statement[1])
                 if not isinstance(pred, bool):
@@ -157,8 +157,8 @@ class ObjectDef:
                 return res
             
             case self.int.RETURN_DEF:
-                if len(statement) > 2:
-                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'return'")
+                # if len(statement) > 2:
+                #     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'return'")
                 self.returned = True
                 # ret_val = None
                 if len(statement) == 2:
