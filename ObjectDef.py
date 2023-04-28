@@ -119,8 +119,8 @@ class ObjectDef:
                 return res
 
             case self.int.WHILE_DEF:
-                if len(statement) > 3:
-                    self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'while'")
+                # if len(statement) > 3:
+                #     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'while'")
 
                 pred = self.resolve_exp(statement[1])
                 if not isinstance(pred, bool):
