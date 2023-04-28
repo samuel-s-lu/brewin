@@ -16,6 +16,8 @@ class ObjectDef:
         self.params_dict = dict()
         self.objects = set()
 
+        self.returned = False
+
     def __str__(self):
         return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\n'
 
@@ -87,6 +89,8 @@ class ObjectDef:
             case self.int.BEGIN_DEF:
                 for i in range(1,len(statement)):
                     res = self.run_statement(statement[i])
+                    if self.returned:
+                        return res
                 return res
             
             case self.int.INPUT_INT_DEF | self.int.INPUT_STRING_DEF:
@@ -154,6 +158,7 @@ class ObjectDef:
             case self.int.RETURN_DEF:
                 if len(statement) > 2:
                     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'return'")
+                self.returned = True
                 # ret_val = None
                 if len(statement) == 2:
                     ret_val = self.resolve_exp(statement[1])
