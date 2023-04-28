@@ -62,7 +62,7 @@ class ObjectDef:
                     res += str(next)
                 
                 self.int.output(res)
-                return
+                return res
             case self.int.SET_DEF:
                 # if len(statement) != 3:
                 #     self.int.error(ET.SYNTAX_ERROR, "Incorrect number of arguments for 'set'")
@@ -99,8 +99,6 @@ class ObjectDef:
                 if statement[0] == self.int.INPUT_INT_DEF:
                     new_val = int(new_val)
                 self.set_var(target_name, new_val)
-
-                return
             
             case self.int.IF_DEF:
                 # if len(statement) > 4:
@@ -109,7 +107,8 @@ class ObjectDef:
                 pred = self.resolve_exp(statement[1])
                 if not isinstance(pred, bool):
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'if'")
-
+                
+                res = None
                 if pred:
                     res = self.run_statement(statement[2])
                 else:
@@ -176,14 +175,14 @@ class ObjectDef:
         if var:
             self.update_var(var, isParam, new_val)
         else:
-            self.int.error(ET.NAME_ERROR, "Undefined variable")
+            self.int.error(ET.NAME_ERROR, f"Undefined variable: {target_name}")
         
 
 
 
     def find_var(self, target_name):
         if (target_name not in self.params_dict.keys()) and (target_name not in self.fields_dict.keys()):
-            self.int.error(ET.NAME_ERROR, "Undefined variable")
+            self.int.error(ET.NAME_ERROR, f"Undefined variable: {target_name}")
         if self.params:
             for var in self.params:
                 if var.name == target_name:
@@ -192,7 +191,7 @@ class ObjectDef:
             if var.name == target_name:
                 return (var, False)
             
-        self.int.error(ET.NAME_ERROR, "Undefined variable")
+        self.int.error(ET.NAME_ERROR, f"Undefined variable: {target_name}")
         return None
     
 
