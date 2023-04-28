@@ -65,5 +65,5 @@ class Interpreter(IB):
             if c.class_name == class_def:
                 return c
             
-        super().error(ET.NAME_ERROR, "Undefined class name")
+        super().error(ET.TYPE_ERROR, "Undefined class name")
         return None
