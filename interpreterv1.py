@@ -9,7 +9,7 @@ from util import remove_line_num
 
 class Interpreter(IB):
 
-    def __init__(self, console_output=True, inp=None, trace_output=True):
+    def __init__(self, console_output=True, inp=None, trace_output=False):
         super().__init__(console_output, inp)
         self.classes = set()
         self.class_names = set()
@@ -20,7 +20,7 @@ class Interpreter(IB):
         if not res:
             super().error(error_type=ET.SYNTAX_ERROR, description="Parsing Error")
                 
-        print("\n")
+        # print("\n")
         self.discover_classes(parsed_program)
         # for c in self.classes:
         #     print(c)
