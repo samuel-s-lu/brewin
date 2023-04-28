@@ -237,7 +237,7 @@ class ObjectDef:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the * operator")
             case '/':
                 if self.both_int(arg1, arg2):
-                    res = arg1 / arg2
+                    res = arg1 // arg2
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the / operator")
             case '%':
