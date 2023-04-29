@@ -44,6 +44,7 @@ class ObjectDef:
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
         res = self.run_statement(statement)
+        self.returned = False
         # print(f'run statement result: {res}')
         return res
 
@@ -138,7 +139,9 @@ class ObjectDef:
                 #     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 # print(type(self.resolve_exp(obj_name)))
                 method_name = statement[2]
-                method_params = [self.resolve_exp(p) for p in statement[3:]]
+                method_params = []
+                if len(statement) >= 4:
+                    method_params = [self.resolve_exp(p) for p in statement[3:]]
                 # print(statement[3:])
                 # print(method_params)
 
@@ -308,7 +311,9 @@ class ObjectDef:
                     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 # print(type(self.resolve_exp(obj_name)))
                 method_name = exp[2]
-                method_params = [self.resolve_exp(p) for p in exp[3:]]
+                method_params = []
+                if len(exp) >= 4:
+                    method_params = [self.resolve_exp(p) for p in exp[3:]]
                 # print(statement[3:])
                 # print(method_params)
 
