@@ -37,6 +37,8 @@ class ObjectDef:
             self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
         statement = method.statement
+        old_params = self.params
+        old_params_dict = self.params_dict
         if param_vals:
             self.params = {VariableDef(n, v) for n, v in zip([x for x in method.args], [x for x in param_vals])}
             self.params_dict = {name:value for name, value in zip(method.args, param_vals)}
@@ -44,6 +46,8 @@ class ObjectDef:
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
         res = self.run_statement(statement)
+        self.params = old_params
+        self.params_dict = old_params_dict
         self.returned = False
         # print(f'run statement result: {res}')
         return res
@@ -89,6 +93,7 @@ class ObjectDef:
 
             case self.int.BEGIN_DEF:
                 for i in range(1,len(statement)):
+                    # print(f'statement: {statement[i]}')
                     res = self.run_statement(statement[i])
                     if self.returned:
                         return res
@@ -147,7 +152,7 @@ class ObjectDef:
 
                 res = None
                 if obj_name == 'me':
-                    # print(method_name)
+                    # print(method_name, method_params)
                     res = self.call_method(method_name, method_params)
                 elif (obj_name in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
                     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
