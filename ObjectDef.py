@@ -132,7 +132,7 @@ class ObjectDef:
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'while'")
 
                 res = None
-                while pred:
+                while pred and not self.returned:
                     res = self.run_statement(statement[2])
                     pred = self.resolve_exp(statement[1])
 
@@ -323,7 +323,6 @@ class ObjectDef:
 
                 res = None
                 if obj_name == 'me':
-                    # print(method_name)
                     # print(f'method name: {method_name}, method params: {method_params}')
                     res = self.call_method(method_name, method_params)
                     # print(f'expression res: {res}')
