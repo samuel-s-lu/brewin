@@ -96,6 +96,7 @@ class ObjectDef:
                     # print(f'statement: {statement[i]}')
                     res = self.run_statement(statement[i])
                     if self.returned:
+                        self.returned = False
                         return res
                 return res
             
