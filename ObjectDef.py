@@ -154,7 +154,7 @@ class ObjectDef:
                 if obj_name == 'me':
                     # print(method_name, method_params)
                     res = self.call_method(method_name, method_params)
-                elif (self.resolve_exp(obj_name) in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
+                elif (type(obj_name) is not list) and (obj_name in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
                     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 else:
                     # print(f'params dict: {self.params_dict}')
@@ -326,7 +326,7 @@ class ObjectDef:
                     # print(f'method name: {method_name}, method params: {method_params}')
                     res = self.call_method(method_name, method_params)
                     # print(f'expression res: {res}')
-                elif (self.resolve_exp(obj_name) in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
+                elif (type(obj_name) is not list) and (obj_name in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
                     self.int.error(ET.FAULT_ERROR, "Deferencing null object")
                 else:
                     # print(f'params dict: {self.params_dict}')
