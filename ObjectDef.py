@@ -73,6 +73,7 @@ class ObjectDef:
         self.params = old_params
         self.params_dict = old_params_dict
         self.returned = False
+        # self.rtype = None
         # print(f'run statement result: {res}')
         return res
 
@@ -106,6 +107,8 @@ class ObjectDef:
                 # print(f'target name: {target_name}')
                 new_val = self.resolve_exp(statement[2])
                 # print(f'new val: {new_val}\n===\n')
+
+                # if self.rtype and self.rtype != 
 
                 self.set_var(target_name, new_val)
 
@@ -184,7 +187,10 @@ class ObjectDef:
                 else:
                     # print(f'params dict: {self.params_dict}')
                     # obj_var, isParam = self.find_var(obj_name)
-                    res = self.resolve_exp(obj_name).call_method(method_name, method_params)
+                    try:
+                        res = self.resolve_exp(obj_name).call_method(method_name, method_params)
+                    except AttributeError:
+                        self.int.error(ET.FAULT_ERROR, "Deferencing null object")
 
                 return res
             
@@ -204,11 +210,16 @@ class ObjectDef:
                     return None
 
 
+
+
     def check_rtype(self, ret_val):
         # returning object of a wrong class, or returning object when not supposed to at all
         if isinstance(ret_val, ObjectDef) and ret_val.category != self.rtype:
             self.int.error(ET.TYPE_ERROR,
                             f'Attempting to return an object of class {ret_val.category} in a method of return type {self.rtype}')
+        # returning a null object when expected return type is a object of any class
+        elif (self.rtype in self.int.class_names) and (ret_val is None):
+            pass
         # returning a primitive of the wrong type
         elif not isinstance(ret_val, ObjectDef) and not isinstance(ret_val, self.rtype):
             self.int.error(ET.TYPE_ERROR,
@@ -219,14 +230,27 @@ class ObjectDef:
         var, isParam = self.find_var(target_name)
 
         if var:
-            if (new_val is not None) and (var.type is not type(new_val)): # primitive type mismatch
+            if (var.type is not ObjectDef) and (var.type is not type(new_val)): # primitive type mismatch
                 self.int.error(ET.TYPE_ERROR,
                                f'Cannot assign {new_val} of type {type(new_val)} to variable {target_name}, which is of type {var.type}')
-            if (var.type is ObjectDef) and (new_val is None): # assigning object to null
-                pass
-            elif var.type is ObjectDef and var.class_type != new_val.category: # object type mismatch
-                self.int.error(ET.TYPE_ERROR,
-                               f'Cannot assign value of class {new_val.category} to variable {target_name}, which is of class {var.class_type}')
+            if (var.type is ObjectDef):
+                if (new_val is None) and (self.rtype != var.class_type): # returning null but method return type mismatch
+                    print(self.rtype)
+                    print(var.class_type)
+                    self.int.error(ET.TYPE_ERROR,
+                                   f'Object type mismatch in assignment ({self.rtype} and {var.class_type})')
+                if new_val is None: # assigning object to null
+                    pass
+                elif var.type is ObjectDef and var.class_type != new_val.category: # object type mismatch
+                    self.int.error(ET.TYPE_ERROR,
+                                   f'Cannot assign value of class {new_val.category} to variable {target_name}, which is of class {var.class_type}')
+                    
+            # elif (var.type is ObjectDef) and (new_val is None): # assigning object to null
+            #     pass
+            # elif 
+            # elif var.type is ObjectDef and var.class_type != new_val.category: # object type mismatch
+            #     self.int.error(ET.TYPE_ERROR,
+            #                    f'Cannot assign value of class {new_val.category} to variable {target_name}, which is of class {var.class_type}')
             self.update_var(var, isParam, new_val)
         else:
             self.int.error(ET.NAME_ERROR, f"Undefined variable: {target_name}")

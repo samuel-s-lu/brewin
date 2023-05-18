@@ -72,13 +72,16 @@ class Interpreter(IB):
 
                         case IB.METHOD_DEF:
                             method_rtype = token[1]
-                            try:
-                                method_rtype = VariableDef.StrToType[method_rtype]
-                            except:
-                                pass
                             method_name = token[2]
                             method_args = token[3]
                             method_statement = token[4]
+
+                            try:
+                                method_rtype = VariableDef.StrToType[method_rtype]
+                            except KeyError:
+                                if method_rtype not in self.class_names and method_rtype != 'void':
+                                    super().error(ET.TYPE_ERROR, f'Invalid method return type {method_rtype} for method {method_name}')
+
                             if method_name in new_class.method_names:
                                 super().error(ET.NAME_ERROR, "Duplicate method names not allowed")
 
