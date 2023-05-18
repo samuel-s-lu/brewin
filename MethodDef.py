@@ -1,5 +1,8 @@
+# from ObjectDef import ObjectDef
+
 class MethodDef:
-    def __init__(self, name, args, statement):
+    def __init__(self, rtype, name, args, statement):
+        self.rtype = rtype
         self.name = name
         self.args = args
         self.statement = statement

@@ -12,11 +12,12 @@ class ObjectDef:
         self.int = interpreter
 
         self.fields_dict = {name:value for name, value in zip([x.name for x in fields], [x.value for x in fields])}
-        self.params = dict()
+        self.params = set()
         self.params_dict = dict()
         self.objects = set()
 
         self.returned = False
+        self.rtype = None
 
     def __str__(self):
         return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\n'
@@ -36,12 +37,35 @@ class ObjectDef:
         if len(param_vals) != len(method.args):
             self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
+        self.rtype = method.rtype
         statement = method.statement
+
         old_params = self.params
         old_params_dict = self.params_dict
         if param_vals:
-            self.params = {VariableDef(n, v) for n, v in zip([x for x in method.args], [x for x in param_vals])}
-            self.params_dict = {name:value for name, value in zip(method.args, param_vals)}
+            self.params.clear()
+            self.params_dict.clear()
+            for param, arg_val in zip([x for x in method.args], [x for x in param_vals]):
+                arg_type = param[0]
+                arg_name = param[1]
+                try:
+                    new_var = VariableDef(arg_type, arg_name, arg_val, True) if arg_type in self.int.class_names else \
+                              VariableDef(arg_type, arg_name, arg_val, False)
+                    self.params.add(new_var)
+                    self.params_dict[arg_name] = arg_val
+                    # if arg_name in self.int.class_names:
+                    #     new_var = VariableDef(arg_type, arg_name, arg_val, True)
+                    #     self.params.add(new_var)
+                    #     self.params_dict[arg_name] = arg_val
+                    # else:
+                    #     new_var = VariableDef(arg_type, arg_name, arg_val, False)
+                    #     self.params.add(new_var)
+                except TypeError:
+                    self.int.error(ET.NAME_ERROR, "Type mismatch in passed arguments and formal parameters")
+                except KeyError:
+                    self.int.error(ET.NAME_ERROR, "Attempting to pass in an argument annotated with an undefined class")
+            # self.params = {VariableDef(n, v) for n, v in zip([x for x in method.args], [x for x in param_vals])}
+            # self.params_dict = {name:value for name, value in zip(method.args, param_vals)}
             # print(f'self params: {self.params}')
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
@@ -136,6 +160,7 @@ class ObjectDef:
                     res = self.run_statement(statement[2])
                     pred = self.resolve_exp(statement[1])
 
+
                 return res
             
             case self.int.CALL_DEF:
@@ -172,15 +197,36 @@ class ObjectDef:
                     ret_val = self.resolve_exp(statement[1])
                     # print(statement)
                     # print(f'ret val: {ret_val}')
+                    
+                    self.check_rtype(ret_val)
                     return ret_val
                 else:
                     return None
+
+
+    def check_rtype(self, ret_val):
+        # returning object of a wrong class, or returning object when not supposed to at all
+        if isinstance(ret_val, ObjectDef) and ret_val.category != self.rtype:
+            self.int.error(ET.TYPE_ERROR,
+                            f'Attempting to return an object of class {ret_val.category} in a method of return type {self.rtype}')
+        # returning a primitive of the wrong type
+        elif not isinstance(ret_val, ObjectDef) and not isinstance(ret_val, self.rtype):
+            self.int.error(ET.TYPE_ERROR,
+                            f'Attempting to return {ret_val} (of type {type(ret_val)}) in a method of return type {self.rtype}')
 
 
     def set_var(self, target_name, new_val):
         var, isParam = self.find_var(target_name)
 
         if var:
+            if (new_val is not None) and (var.type is not type(new_val)): # primitive type mismatch
+                self.int.error(ET.TYPE_ERROR,
+                               f'Cannot assign {new_val} of type {type(new_val)} to variable {target_name}, which is of type {var.type}')
+            if (var.type is ObjectDef) and (new_val is None): # assigning object to null
+                pass
+            elif var.type is ObjectDef and var.class_type != new_val.category: # object type mismatch
+                self.int.error(ET.TYPE_ERROR,
+                               f'Cannot assign value of class {new_val.category} to variable {target_name}, which is of class {var.class_type}')
             self.update_var(var, isParam, new_val)
         else:
             self.int.error(ET.NAME_ERROR, f"Undefined variable: {target_name}")
@@ -256,13 +302,17 @@ class ObjectDef:
             case '==':
                 # print(f'arg1 arg2: {arg1} {arg2}')
                 # print(f'both obj: {self.both_obj(arg1,arg2)}')
-                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2) or self.both_obj(arg1, arg2):
+                if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2):
                     return arg1 == arg2
+                elif self.both_obj(arg1, arg2):
+                    return arg1 is arg2
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the == operator")
             case '!=':
                 if self.both_int(arg1, arg2) or self.both_str(arg1, arg2) or self.both_bool(arg1, arg2) or self.both_obj(arg1, arg2):
                     return arg1 != arg2
+                elif self.both_obj(arg1, arg2):
+                    return arg1 is not arg2
                 else:
                     self.int.error(ET.TYPE_ERROR, "Incompatible types using the != operator")
             case '<':
