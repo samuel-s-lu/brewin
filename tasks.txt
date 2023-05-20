@@ -1,0 +1,7 @@
+let:
+    add check in run_statement
+        processes vars and add to let stack
+        run statements
+        pop let stack at the end
+    resolving var order
+        let stack, params, fields 

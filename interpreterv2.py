@@ -4,7 +4,6 @@ from ClassDef import ClassDef
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
 from VariableDef import VariableDef, create_anon_value
-from util import remove_line_num
 
 
 class Interpreter(IB):
@@ -70,6 +69,8 @@ class Interpreter(IB):
                                 super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
                             except KeyError:
                                 super().error(ET.TYPE_ERROR, "Attempting to annotate field with an undefined class")
+                            except:
+                                super().erorr(ET.TYPE_ERROR, "Error in field initialization")
 
                         case IB.METHOD_DEF:
                             method_rtype = token[1]
@@ -104,5 +105,5 @@ class Interpreter(IB):
             if c.class_name == class_def:
                 return c
             
-        super().error(ET.TYPE_ERROR, "Undefined class name")
+        super().error(ET.TYPE_ERROR, f"Undefined class name: {class_def}")
         return None

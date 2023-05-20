@@ -8,7 +8,7 @@ class MethodDef:
         self.statement = statement
 
     def __str__(self) -> str:
-        return f'Method Name: {self.name}, Args: {self.args}, Statement: {self.statement}\n'
+        return f'Method Name: {self.name}, Return Type: {self.rtype}, Args: {self.args}, Statement: {self.statement}\n'
 
     def __repr__(self):
         return self.__str__()

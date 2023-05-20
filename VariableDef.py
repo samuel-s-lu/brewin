@@ -7,6 +7,9 @@ class VariableDef:
 
     ANON = 'HASH: IHEARTMEIMEI'
     NOTHING = 'HASH: SAMMEI5EVER'
+    LOCAL = 'HASH: HAMMYWIZZY'
+    PARAM = 'HASH: XIAOBAOBEI'
+    FIELD = 'HASH: ERIKISDEAD'
 
     def __init__(self, var_type, name, value, isObj):
         self.name = name
@@ -16,9 +19,6 @@ class VariableDef:
 
 
         if isObj:
-            # if isInit and value is not None:
-            #     raise TypeError("Object fields must be initialized to 'null'")
-            # else:
             from ObjectDef import ObjectDef
             self.type = ObjectDef
             self.class_type = var_type
