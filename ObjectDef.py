@@ -429,16 +429,16 @@ class ObjectDef:
 
 
     def both_str(self, arg1, arg2):
-        return isinstance(arg1, str) and isinstance(arg2, str)
+        return isinstance(arg1.value, str) and isinstance(arg2.value, str)
 
 
     def both_int(self, arg1, arg2):
         # return isinstance(arg1, int) and isinstance(arg2, int)
-        return type(arg1) in {int} and type(arg2) in {int}
+        return type(arg1.value) in {int} and type(arg2.value) in {int}
     
     def both_bool(self, arg1, arg2):
         # return isinstance(arg1, bool) and isinstance(arg2, bool)
-        return type(arg1) in {bool} and type(arg2) in {bool}
+        return type(arg1.value) in {bool} and type(arg2.value) in {bool}
     
     def both_obj(self, arg1, arg2):
         # true if both none, or one none one obj, or both obj
