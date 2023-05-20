@@ -62,7 +62,7 @@ class ObjectDef:
                 except TypeError:
                     self.int.error(ET.NAME_ERROR, "Type mismatch in passed arguments and formal parameters")
                 except KeyError:
-                    self.int.error(ET.NAME_ERROR, "Attempting to pass in an argument annotated with an undefined class")
+                    self.int.error(ET.NAME_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
             # print(f'self params: {self.params}')
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
@@ -128,6 +128,7 @@ class ObjectDef:
                 new_val = self.int.get_input()
                 if statement[0] == self.int.INPUT_INT_DEF:
                     new_val = int(new_val)
+                new_val = create_anon_value(new_val)
                 self.set_var(target_name, new_val)
             
             case self.int.IF_DEF:
