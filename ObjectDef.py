@@ -126,8 +126,10 @@ class ObjectDef:
             case self.int.INPUT_INT_DEF | self.int.INPUT_STRING_DEF:
                 target_name = statement[1]
                 new_val = self.int.get_input()
-                if statement[0] == self.int.INPUT_INT_DEF:
-                    new_val = int(new_val)
+                # print(f'new val: {new_val}')
+                # print(f'new val type: {type(new_val)}')
+                # if statement[0] == self.int.INPUT_INT_DEF:
+                #     new_val = int(new_val)
                 new_val = create_anon_value(new_val)
                 self.set_var(target_name, new_val)
             

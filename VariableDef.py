@@ -45,21 +45,21 @@ class VariableDef:
         self.value = other.value
 
 def create_anon_value(val, class_type=None):
-    match val:
-        case IB.TRUE_DEF:
-            return VariableDef(bool, VariableDef.ANON, True, False)
-        case IB.FALSE_DEF:
-            return VariableDef(bool, VariableDef.ANON, False, False)
-        case IB.NULL_DEF:
-            return VariableDef(class_type, VariableDef.ANON, None, True) if class_type else \
-                   VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
-        case _ if val == "" or val[0] == '"':
-            s = str(val)
-            return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
-        case _:
-            # int
-            try:
-                return VariableDef(int, VariableDef.ANON, int(str(val)), False)
-            # variable
-            except:
-                return (str(val), True)
+    if val == IB.TRUE_DEF:
+        return VariableDef(bool, VariableDef.ANON, True, False)
+    elif val == IB.FALSE_DEF:
+        return VariableDef(bool, VariableDef.ANON, False, False)
+    elif val == "":
+        return VariableDef(str, VariableDef.ANON, "", False)
+    elif val.lstrip("-").isnumeric():
+        return VariableDef(int, VariableDef.ANON, int(str(val)), False)
+    elif type(val) is str:
+        return VariableDef(str, VariableDef.ANON, val, False)
+    elif val[0] == '"':
+        s = str(val)
+        return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
+    elif val == IB.NULL_DEF:
+        return VariableDef(class_type, VariableDef.ANON, None, True) if class_type else \
+               VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
+    
+    return None
