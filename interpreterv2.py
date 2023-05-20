@@ -3,7 +3,7 @@ from bparser import BParser
 from ClassDef import ClassDef
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
-from VariableDef import VariableDef
+from VariableDef import VariableDef, create_anon_value
 from util import remove_line_num
 
 
@@ -45,7 +45,8 @@ class Interpreter(IB):
                         case IB.FIELD_DEF:
                             field_type = token[1]
                             field_name = token[2]
-                            field_value = remove_line_num(token[3])[0]
+                            field_value = create_anon_value(token[3]).value
+                            # field_value = remove_line_num(token[3])[0]
                             # print(field_value)
                             # print(type(field_value))
                             # print(field_type)

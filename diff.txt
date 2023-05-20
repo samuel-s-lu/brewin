@@ -1,0 +1,60 @@
+--- cur_submission.txt	2023-05-18 02:46:20
++++ prev_submission.txt	2023-05-18 02:41:43
+@@ -1,5 +1,4 @@
+ Failed Tests
+-Correctness | test_assign_null (0/1)
+ Correctness | test_compare_null (0/1)
+ Correctness | test_compare_objref (0/1)
+ Correctness | test_inher1 (0/1)
+\ No newline at end of file
+@@ -22,20 +21,23 @@
+ Correctness | test_overload1 (0/1)
+ Correctness | test_pass_by_value2 (0/1)
+ Correctness | test_return_default1 (0/1)
+-Correctness | test_return_default2 (0/1)
+ Correctness | test_return_me (0/1)
++Correctness | test_return_null (0/1)
+ Correctness | test_return_type3 (0/1)
+ Incorrectness | test_bad_type_param (0/1)
+ Incorrectness | test_call_badargs2 (0/1)
+ Incorrectness | test_dup_formal_param (0/1)
+ Incorrectness | test_incompat_compare2 (0/1)
+ Incorrectness | test_incompat_return5 (0/1)
++Incorrectness | test_incompat_types2 (0/1)
+ Incorrectness | test_inher2 (0/1)
++Incorrectness | test_invalid_return_type (0/1)
+ Incorrectness | test_let (0/1)
+ Incorrectness | test_let2 (0/1)
+ Incorrectness | test_null_objref (0/1)
+ Incorrectness | test_return_assign_type (0/1)
+ Passed Tests
++Correctness | test_assign_null (1/1)
+ Correctness | test_begin (1/1)
+ Correctness | test_bool_expr (1/1)
+ Correctness | test_compare_bool (1/1)
+\ No newline at end of file
+@@ -56,8 +58,8 @@
+ Correctness | test_print_bool (1/1)
+ Correctness | test_print_int (1/1)
+ Correctness | test_print_string (1/1)
++Correctness | test_return_default2 (1/1)
+ Correctness | test_return_exit (1/1)
+-Correctness | test_return_null (1/1)
+ Correctness | test_return_type (1/1)
+ Correctness | test_return_type2 (1/1)
+ Correctness | test_return (1/1)
+\ No newline at end of file
+@@ -80,12 +82,10 @@
+ Incorrectness | test_incompat_return3 (1/1)
+ Incorrectness | test_incompat_return4 (1/1)
+ Incorrectness | test_incompat_types1 (1/1)
+-Incorrectness | test_incompat_types2 (1/1)
+ Incorrectness | test_incompat_types3 (1/1)
+ Incorrectness | test_inher1 (1/1)
+ Incorrectness | test_inher3 (1/1)
+ Incorrectness | test_instantiate_invalid (1/1)
+-Incorrectness | test_invalid_return_type (1/1)
+ Incorrectness | test_missing_main (1/1)
+ Incorrectness | test_poly1 (1/1)
+ Incorrectness | test_set_invalid_var (1/1)
+\ No newline at end of file
