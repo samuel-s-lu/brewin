@@ -53,7 +53,7 @@ def create_anon_value(val, class_type=None):
         case IB.NULL_DEF:
             return VariableDef(class_type, VariableDef.ANON, None, True) if class_type else \
                    VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
-        case _ if val[0] == '"':
+        case _ if val == "" or val[0] == '"':
             s = str(val)
             return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
         case _:

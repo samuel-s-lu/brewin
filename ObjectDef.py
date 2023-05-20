@@ -120,6 +120,8 @@ class ObjectDef:
                     res = self.run_statement(statement[i], return_type)
                     if self.returned:
                         return res
+                if return_type != 'void':
+                    res = self.def_return(return_type)
             
             case self.int.INPUT_INT_DEF | self.int.INPUT_STRING_DEF:
                 target_name = statement[1]
@@ -173,6 +175,7 @@ class ObjectDef:
             case self.int.RETURN_DEF:
                 # if len(statement) > 2:
                 #     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'return'")
+                res = None
                 self.returned = True
                 if len(statement) == 2:
                     ret_val = self.resolve_exp(statement[1], return_type)
@@ -182,9 +185,10 @@ class ObjectDef:
                     self.check_rtype(ret_val)
                     # print("returned")
 
-                    return ret_val
+                    res = ret_val
                 else:
-                    return None
+                    if return_type != 'void':
+                        res = self.def_return(return_type)
                 
         return res
 
@@ -296,8 +300,8 @@ class ObjectDef:
                     var, _ = self.find_var(exp)
                     return var
                 except:
-                    if exp == 'null':
-                        return create_anon_value(exp, return_type) if return_type != 'void' else create_anon_value(exp)
+                    if exp == 'null' and return_type != 'void':
+                        return create_anon_value(exp, return_type)
                     else:
                         return create_anon_value(exp)
             # return self.unwrap_simp_exp(exp)
@@ -453,6 +457,17 @@ class ObjectDef:
         self.int.error(ET.NAME_ERROR, "Method not found")
         return None
     
+
+    def def_return(self, rtype):
+        if rtype in VariableDef.primitives:
+            if rtype in {int, 'int'}:
+                return create_anon_value('0')
+            elif rtype in {str, 'str'}:
+                return create_anon_value("")
+            elif rtype in {bool}:
+                return create_anon_value('false')       
+        else:
+            return create_anon_value('null', rtype)
 
     # def unwrap_simp_exp(self,exp):
     #     exp, isVar = remove_line_num(exp)
