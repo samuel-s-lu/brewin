@@ -43,34 +43,20 @@ class Interpreter(IB):
                     match token[0]:
                         case IB.FIELD_DEF:
                             field_type = token[1]
+                            if field_type in self.class_names and token[3] != 'null':
+                                    super().error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
                             field_name = token[2]
+
                             field_value = create_anon_value(token[3]).value
-                            # field_value = remove_line_num(token[3])[0]
-                            # print(field_value)
-                            # print(type(field_value))
-                            # print(field_type)
-                            # print(type(field_type))
-                            # print("")
 
                             try:
-                                if field_type in self.class_names and field_value is not None:
-                                    super().error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
-
                                 new_var = VariableDef(field_type, field_name, field_value, True) if field_type in self.class_names else \
                                           VariableDef(field_type, field_name, field_value, False)
                                 new_class.add_field(new_var)
-                                # if field_type in self.class_names:
-                                #     new_var = VariableDef(field_type, field_name, field_value, True)
-                                #     new_class.add_field(new_var)
-                                # else:
-                                #     new_var = VariableDef(field_type, field_name, field_value, False)
-                                #     new_class.add_field(new_var)
                             except TypeError:
                                 super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
                             except KeyError:
                                 super().error(ET.TYPE_ERROR, "Attempting to annotate field with an undefined class")
-                            except:
-                                super().erorr(ET.TYPE_ERROR, "Error in field initialization")
 
                         case IB.METHOD_DEF:
                             method_rtype = token[1]

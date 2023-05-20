@@ -216,15 +216,21 @@ class ObjectDef:
 
     def add_to_let_stack(self, local_vars):
         temp = []
+        var_names = []
         for var in local_vars:
             var_type = var[0]
+            if var_type in self.int.class_names and var[2] != 'null':
+                self.int.error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
+
             var_name = var[1]
+            if var_name in var_names:
+                self.int.error(ET.NAME_ERROR,
+                               f'Duplicate name in local variable initialization')
+            var_names.append(var_name)
+
             var_value = create_anon_value(var[2]).value
 
             try:
-                if var_type in self.int.class_names and var_value is not None:
-                    self.int.error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
-
                 new_var = VariableDef(var_type, var_name, var_value, True) if var_type in self.int.class_names else \
                             VariableDef(var_type, var_name, var_value, False)
                 temp.append(new_var)
