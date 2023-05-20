@@ -149,14 +149,14 @@ class ObjectDef:
                 # if len(statement) > 3:
                 #     self.int.error(ET.SYNTAX_ERROR, "Invalid number of arguments provided to 'while'")
 
-                pred = self.resolve_exp(statement[1])
+                pred = self.resolve_exp(statement[1]).value
                 if not isinstance(pred, bool):
                     self.int.error(ET.TYPE_ERROR, "non boolean provided as condition to 'while'")
 
                 res = None
                 while pred and not self.returned:
                     res = self.run_statement(statement[2], return_type)
-                    pred = self.resolve_exp(statement[1])
+                    pred = self.resolve_exp(statement[1]).value
             
             case self.int.CALL_DEF:
                 obj_name = statement[1]
