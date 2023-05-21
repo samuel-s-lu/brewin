@@ -31,12 +31,13 @@ class VariableDef:
                 raise TypeError("Type of variable does not match assigned value")
             else:
                 self.type = type(value)
+                self.class_type = self.type
         # print(self.type)
         # print("")
 
     def __str__(self):
-        return f'Variable Name: {self.name}, Value: {self.value}, Type: {self.type}, Class Type: {self.class_type}\n' if self.class_type else \
-               f'Variable Name: {self.name}, Value: {self.value}, Type: {self.type}\n'
+        return f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\nClass Type: {self.class_type}\n' if self.class_type else \
+               f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\n'
 
     def __repr__(self):
         return self.__str__()

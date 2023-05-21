@@ -5,3 +5,12 @@ let:
         pop let stack at the end
     resolving var order
         let stack, params, fields 
+
+inheritance:
+    add check for inheritance keyword
+        let class keep track of parent
+        and also for super class to keep track of its child/children
+    method call
+        allow passing of children when required type is a parent (or ancestor)
+    assignment
+        allow children to be assigned to ancestors

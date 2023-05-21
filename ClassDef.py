@@ -4,7 +4,7 @@ from MethodDef import MethodDef
 from ObjectDef import ObjectDef
 
 class ClassDef:
-    def __init__(self, class_name, interpreter):
+    def __init__(self, class_name, interpreter, super_class_name=None):
         self.class_name = class_name
         self.int = interpreter
 
@@ -13,19 +13,29 @@ class ClassDef:
         self.methods = set()
         self.method_names = set()
 
+        self.super_class_name = super_class_name
+        self.super_class_def = None
+        self.super_obj = None
+        if self.super_class_name:
+            self.super_class_def = self.int.find_class_def(self.super_class_name)
+            self.super_obj = self.super_class_def.instantiate_object()
+        self.children = set()
+
     def __str__(self):
-        return f'Class {self.class_name}\nFields: {self.fields}\nMethods: {self.methods}\n'
+        return f'Class {self.class_name}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
 
     def __repr__(self):
         return self.__str__()
+    
+    def add_child(self, class_name):
+        self.children.add(class_name)
+        if self.super_class_def:
+            self.super_class_def.add_child(class_name)
 
-    def instantiate_object(self):
-        obj = ObjectDef(self.class_name, self.fields, self.methods, self.int)
-        # for method in self.methods:
-        #     obj.add_method(method)
-        # for field in self.fields:
-        #     obj.add_field(field.name(), field.initial_value())
-        return obj
+
+    def instantiate_object(self) -> ObjectDef:
+        return ObjectDef(self.class_name, self.fields, self.methods, self.int, self.super_class_name, self.super_obj, self.children)
+    
 
     def add_field(self, var: VariableDef):
         if var.name in self.field_names:

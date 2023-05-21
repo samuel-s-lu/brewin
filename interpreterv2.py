@@ -18,9 +18,9 @@ class Interpreter(IB):
         
         # if not res:
         #     super().error(error_type=ET.SYNTAX_ERROR, description="Parsing Error")
-                
-        # print("\n")
+
         self.discover_classes(parsed_program)
+        # print(f'# classes: {len(self.classes)}')
         # for c in self.classes:
         #     print(c)
         
@@ -35,8 +35,23 @@ class Interpreter(IB):
         for class_def in parsed_program:
             new_class_name = str(class_def[1])
             if new_class_name in self.class_names:
-                super().error(ET.TYPE_ERROR, "Duplicate class names not allowed", class_def[1].line_num)
-            new_class = ClassDef(new_class_name, self)
+                super().error(ET.TYPE_ERROR, "Duplicate class names not allowed")
+
+            # derived class
+            if type(class_def[2]) is not list:
+                super_class_name = class_def[3]
+                if super_class_name not in self.class_names:
+                    super().error(ET.TYPE_ERROR,
+                                  f'Undefined class name: {super_class_name}')
+                new_class = ClassDef(new_class_name, self, super_class_name)
+
+
+                parent = self.find_class_def(super_class_name)
+                parent.add_child(new_class_name)
+
+
+            else:
+                new_class = ClassDef(new_class_name, self)
 
             for token in class_def:
                 if type(token) is list:
@@ -86,7 +101,7 @@ class Interpreter(IB):
             self.classes.add(new_class)
             self.class_names.add(new_class_name)
 
-    def find_class_def(self, class_def):
+    def find_class_def(self, class_def) -> ClassDef:
         for c in self.classes:
             if c.class_name == class_def:
                 return c

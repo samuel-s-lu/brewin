@@ -2,9 +2,18 @@
 from intbase import ErrorType as ET
 from MethodDef import MethodDef
 from VariableDef import VariableDef, create_anon_value
+from typing import Type
 
 class ObjectDef:
-    def __init__(self, category, fields:set[VariableDef], methods:set[MethodDef], interpreter):
+    def __init__(self,
+                 category,
+                 fields:set[VariableDef],
+                 methods:set[MethodDef],
+                 interpreter,
+                 super_class_name,
+                 super_obj,
+                 children):
+        
         self.category = category
         self.fields = fields
         self.methods = methods
@@ -19,23 +28,25 @@ class ObjectDef:
 
         self.stack = []
 
+        self.super_class_name = super_class_name
+        self.super_obj = super_obj
+        self.children = children
+
     def __str__(self):
-        return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\n'
+        return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
 
     def __repr__(self):
         return self.__str__()
 
     
     def call_method(self, method_name, param_vals):
-        method = self.find_method(method_name)
+        method = self.find_method(method_name, param_vals)
         # print(method)
         # print(f'method args: {method.args}')
         # print(f'param vals: {param_vals}')
-        if not method:
-            self.int.error(ET.NAME_ERROR, "Method not found")
         
-        if len(param_vals) != len(method.args):
-            self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
+        # if len(param_vals) != len(method.args):
+        #     self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
         self.rtype = method.rtype
         try:
@@ -50,6 +61,9 @@ class ObjectDef:
         if param_vals:
             self.params.clear()
             self.params_dict.clear()
+
+            
+
             for param, arg_val in zip([x for x in method.args], [x.value for x in param_vals]):
                 arg_type = param[0]
                 arg_name = param[1]
@@ -203,6 +217,41 @@ class ObjectDef:
 
                 
         return res
+    
+    def check_child(self, class_type1, class_type2):
+        class_def1 = self.int.find_class_def(class_type1)
+        if class_type2 in class_def1.children:
+            return True
+        return False
+    
+    def check_params(self, method_args, param_vals:list[VariableDef]) -> bool:
+        if len(method_args) != len(param_vals):
+            return False
+        for arg, val in zip(method_args, param_vals):
+            arg_type = arg[0]
+            try:
+                arg_type = VariableDef.StrToType[arg_type]
+                if val.type != arg_type:
+                    return False
+            except:
+                if arg_type not in self.int.class_names:
+                    self.int.error(ET.NAME_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
+                if val.class_type != arg_type:
+                    return False
+        return True
+                
+
+
+    def find_method(self, method_name, param_vals) -> MethodDef:
+        for m in self.methods:
+            if m.name == method_name and self.check_params(m.args, param_vals):
+                return m
+        if self.super_obj:
+            # print(self)
+            # print(self.super_obj)
+            return self.super_obj.find_method(method_name, param_vals)
+            
+        self.int.error(ET.NAME_ERROR, f"Method {method_name} that takes in parameters {[var.class_type for var in param_vals]} not found")
 
 
     def search_let_stack(self, target_name):
@@ -245,9 +294,15 @@ class ObjectDef:
 
 
     def call_method_aux(self, obj_name, method_name, method_params):
+        # print(f'calling {method_name}')
         res = None
         if obj_name == 'me':
             res = self.call_method(method_name, method_params)
+        if obj_name == 'super':
+            if not self.super_obj:
+                self.int.error(ET.TYPE_ERROR,
+                               f'Invalid call to super class made by class {self.category}')
+            res = self.super_obj.call_method(method_name, method_params)
         elif (type(obj_name) is not list) and (obj_name in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
             self.int.error(ET.FAULT_ERROR, "Deferencing null object")
         else:
@@ -451,9 +506,12 @@ class ObjectDef:
             case self.int.NEW_DEF:
                 class_name = exp[1]
                 class_def = self.int.find_class_def(class_name)
-                val = class_def.instantiate_object()
+                obj = class_def.instantiate_object()
                 
-                res = VariableDef(class_name, VariableDef.ANON, val, True)
+                res = VariableDef(class_name, VariableDef.ANON, obj, True)
+                # print(res.value)
+                # print(res.value.super_obj)
+                # print(res.value.super_obj.super_obj)
             
             case self.int.CALL_DEF:
                 obj_name = exp[1]
@@ -482,15 +540,6 @@ class ObjectDef:
     
     def both_obj(self, arg1, arg2):
         return arg1.type is ObjectDef and arg2.type is ObjectDef
-
-
-    def find_method(self, method_name):
-        for m in self.methods:
-            if m.name == method_name:
-                return m
-            
-        self.int.error(ET.NAME_ERROR, "Method not found")
-        return None
     
 
     def def_return(self, rtype):
