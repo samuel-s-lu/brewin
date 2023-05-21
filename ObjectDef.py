@@ -294,11 +294,10 @@ class ObjectDef:
 
 
     def call_method_aux(self, obj_name, method_name, method_params):
-        # print(f'calling {method_name}')
         res = None
         if obj_name == 'me':
             res = self.call_method(method_name, method_params)
-        if obj_name == 'super':
+        elif obj_name == 'super':
             if not self.super_obj:
                 self.int.error(ET.TYPE_ERROR,
                                f'Invalid call to super class made by class {self.category}')
@@ -521,7 +520,6 @@ class ObjectDef:
                     method_params = [self.resolve_exp(p) for p in exp[3:]]
                 # print(statement[3:])
                 # print(method_params)
-
                 res = self.call_method_aux(obj_name, method_name, method_params)
 
                 return res

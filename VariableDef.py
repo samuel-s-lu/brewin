@@ -31,7 +31,7 @@ class VariableDef:
                 raise TypeError("Type of variable does not match assigned value")
             else:
                 self.type = type(value)
-                self.class_type = self.type
+                # self.class_type = self.type
         # print(self.type)
         # print("")
 
@@ -54,7 +54,7 @@ def create_anon_value(val, class_type=None):
         return VariableDef(str, VariableDef.ANON, "", False)
     elif val.lstrip("-").isnumeric():
         return VariableDef(int, VariableDef.ANON, int(str(val)), False)
-    elif type(val) is str:
+    elif type(val) is str and not class_type:
         return VariableDef(str, VariableDef.ANON, val, False)
     elif val[0] == '"':
         s = str(val)
