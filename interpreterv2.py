@@ -65,8 +65,12 @@ class Interpreter(IB):
                             field_value = create_anon_value(token[3]).value
 
                             try:
-                                new_var = VariableDef(field_type, field_name, field_value, True) if field_type in self.class_names else \
-                                          VariableDef(field_type, field_name, field_value, False)
+                                if field_type in self.class_names or field_type == new_class_name:
+                                    new_var = VariableDef(field_type, field_name, field_value, True)
+                                else:
+                                    new_var = VariableDef(field_type, field_name, field_value, False)
+                                # new_var = VariableDef(field_type, field_name, field_value, True) if field_type in self.class_names else \
+                                #           VariableDef(field_type, field_name, field_value, False)
                                 new_class.add_field(new_var)
                             except TypeError:
                                 super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
