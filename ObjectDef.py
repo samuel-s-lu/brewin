@@ -43,6 +43,8 @@ class ObjectDef:
         self.super_class_name = super_class_name
         self.super_obj = super_obj
         self.children = children
+        if self.super_obj:
+            self.super_obj.child_obj = self
 
     def __str__(self):
         return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
@@ -313,7 +315,10 @@ class ObjectDef:
         print(f'ME {self}\n ENDME')
         res = None
         if obj_name == 'me':
-            res = self.call_method(method_name, method_params)
+            if self.child_obj:
+                res = self.child_obj.call_method(method_name, method_params)
+            else:
+                res = self.call_method(method_name, method_params)
         elif obj_name == 'super':
             print("in super")
             if not self.super_obj:
@@ -328,6 +333,7 @@ class ObjectDef:
                 res = self.resolve_exp(obj_name).value.call_method(method_name, method_params)
             except AttributeError:
                 self.int.error(ET.FAULT_ERROR, "Deferencing null object")
+
         return res
 
 
