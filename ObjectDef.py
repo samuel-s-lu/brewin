@@ -253,7 +253,7 @@ class ObjectDef:
             except:
                 if arg_type not in self.int.class_names:
                     self.int.error(ET.NAME_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
-                if val.class_type != arg_type:
+                if val.class_type != arg_type and not self.check_child(arg_type, val.class_type):
                     return False
         return True
                 
@@ -354,6 +354,7 @@ class ObjectDef:
         """
         Throws TYPE_ERROR if type of var1 and var2 are inconsistent
         Otherwise do nothing
+        var2 must be child of var1
         """
         # print(f'var1: {var1}')
         # print(f'var2: {var2}')
@@ -361,6 +362,25 @@ class ObjectDef:
         if self.both_obj(var1, var2) and \
            (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING \
             or self.check_child(var1.class_type, var2.class_type)):
+            return
+        elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
+            return
+        
+        self.int.error(ET.TYPE_ERROR,
+                        f'Type mismatch | Type: {var1.type} and {var2.type} | Class Type: {var1.class_type} and {var2.class_type}')
+        
+    def relaxed_type_check(self, var1:VariableDef, var2:VariableDef):
+        """
+        Throws TYPE_ERROR if type of var1 and var2 are inconsistent
+        Otherwise do nothing
+        Either variable can be the child of the other
+        """
+        # print(f'var1: {var1}')
+        # print(f'var2: {var2}')
+
+        if self.both_obj(var1, var2) and \
+           (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING \
+            or self.check_child(var1.class_type, var2.class_type) or self.check_child(var2.class_type, var1.class_type)):
             return
         elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
             return
@@ -471,7 +491,7 @@ class ObjectDef:
                     val = arg1.value == arg2.value
                     res = VariableDef(type(val), VariableDef.ANON, val, False)
                 elif self.both_obj(arg1, arg2):
-                    self.type_check(arg1, arg2)
+                    self.relaxed_type_check(arg1, arg2)
                     val =  arg1.value is arg2.value
                     res = VariableDef(type(val), VariableDef.ANON, val, False)
                 else:
@@ -481,7 +501,7 @@ class ObjectDef:
                     val = arg1.value != arg2.value
                     res = VariableDef(type(val), VariableDef.ANON, val, False)
                 elif self.both_obj(arg1, arg2):
-                    self.type_check(arg1, arg2)
+                    self.relaxed_type_check(arg1, arg2)
                     val =  arg1.value is not arg2.value
                     res = VariableDef(type(val), VariableDef.ANON, val, False)
                 else:
