@@ -43,6 +43,7 @@ class ObjectDef:
         self.super_class_name = super_class_name
         self.super_obj = super_obj
         self.children = children
+        self.child_obj = None
         if self.super_obj:
             self.super_obj.child_obj = self
 
