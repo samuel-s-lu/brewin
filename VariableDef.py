@@ -17,12 +17,14 @@ class VariableDef:
         self.value = value
         self.isObj = isObj
         self.class_type = None
+        self.cur_class_type = None
 
 
         if isObj:
             from ObjectDef import ObjectDef
             self.type = ObjectDef
             self.class_type = var_type
+            self.cur_class_type = var_type
             # print(self.class_type)
         else:
             if isinstance(var_type, str):
@@ -45,6 +47,8 @@ class VariableDef:
 
     def update(self, other):
         self.value = other.value
+        if self.cur_class_type:
+            self.cur_class_type = other.cur_class_type
 
 def create_anon_value(val, class_type=None):
     if class_type:

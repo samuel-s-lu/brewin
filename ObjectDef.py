@@ -374,15 +374,22 @@ class ObjectDef:
         # print(f'var1: {var1}')
         # print(f'var2: {var2}')
 
+        # if self.both_obj(var1, var2) and \
+        #    (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING \
+        #     or self.check_child(var1.class_type, var2.class_type)):
+        #     return
+        # elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
+        #     return
+
         if self.both_obj(var1, var2) and \
-           (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING \
-            or self.check_child(var1.class_type, var2.class_type)):
+           (var1.cur_class_type == var2.cur_class_type or var2.cur_class_type == VariableDef.NOTHING or var1.cur_class_type == VariableDef.NOTHING \
+            or self.check_child(var1.cur_class_type, var2.cur_class_type)):
             return
         elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
             return
         
         self.int.error(ET.TYPE_ERROR,
-                        f'Type mismatch | Type: {var1.type} and {var2.type} | Class Type: {var1.class_type} and {var2.class_type}')
+                        f'Type mismatch | Type: {var1.type} and {var2.type} | Class Type: {var1.cur_class_type} and {var2.cur_class_type}')
         
     def relaxed_type_check(self, var1:VariableDef, var2:VariableDef):
         """
