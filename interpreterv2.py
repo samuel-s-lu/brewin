@@ -93,10 +93,10 @@ class Interpreter(IB):
                             try:
                                 method_rtype = VariableDef.StrToType[method_rtype]
                             except KeyError:
-                                # if method_rtype not in self.class_names and method_rtype != new_class_name and method_rtype != 'void':
-                                #     super().error(ET.TYPE_ERROR, f'Invalid method return type {method_rtype} for method {method_name}')
-                                if method_rtype not in self.class_names and method_rtype != 'void':
+                                if method_rtype not in self.class_names and method_rtype != new_class_name and method_rtype != 'void':
                                     super().error(ET.TYPE_ERROR, f'Invalid method return type {method_rtype} for method {method_name}')
+                                # if method_rtype not in self.class_names and method_rtype != 'void':
+                                #     super().error(ET.TYPE_ERROR, f'Invalid method return type {method_rtype} for method {method_name}')
 
                             if method_name in new_class.method_names:
                                 super().error(ET.NAME_ERROR, "Duplicate method names not allowed")

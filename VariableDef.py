@@ -1,4 +1,5 @@
 from intbase import InterpreterBase as IB
+import copy
 
 class VariableDef:
     StrToType = {'int':int, 'string':str, 'bool':bool}
@@ -43,7 +44,7 @@ class VariableDef:
         return self.__str__()
 
     def update(self, other):
-        self.value = other.value
+        self.value = copy.copy(other.value)
 
 def create_anon_value(val, class_type=None):
     if class_type:

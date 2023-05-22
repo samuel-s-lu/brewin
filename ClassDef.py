@@ -2,6 +2,7 @@ from intbase import ErrorType as ET
 from VariableDef import VariableDef
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
+import copy
 
 class ClassDef:
     def __init__(self, class_name, interpreter, super_class_name=None):
@@ -34,7 +35,8 @@ class ClassDef:
 
 
     def instantiate_object(self) -> ObjectDef:
-        return ObjectDef(self.class_name, self.fields, self.methods, self.int, self.super_class_name, self.super_obj, self.children)
+        # print(self.fields)
+        return ObjectDef(self.class_name, copy.deepcopy(self.fields), self.methods, self.int, self.super_class_name, self.super_obj, self.children)
     
 
     def add_field(self, var: VariableDef):
