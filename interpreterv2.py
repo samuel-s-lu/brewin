@@ -75,7 +75,7 @@ class Interpreter(IB):
                             except TypeError:
                                 super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
                             except KeyError:
-                                super().error(ET.TYPE_ERROR, "Attempting to annotate field with an undefined class")
+                                super().error(ET.TYPE_ERROR, f"Attempting to annotate field with an undefined class {field_type}")
 
                         case IB.METHOD_DEF:
                             method_rtype = token[1]
