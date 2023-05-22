@@ -4,6 +4,18 @@ from MethodDef import MethodDef
 from VariableDef import VariableDef, create_anon_value
 from typing import Type
 
+import sys, os
+
+# Disable
+def blockPrint():
+    sys.stdout = open(os.devnull, 'w')
+
+# Restore
+def enablePrint():
+    sys.stdout = sys.__stdout__
+
+blockPrint()
+
 class ObjectDef:
     def __init__(self,
                  category,
@@ -40,8 +52,8 @@ class ObjectDef:
 
     
     def call_method(self, method_name, param_vals):
-        method = self.find_method(method_name, param_vals)
-        # print(method)
+        method, calling_obj = self.find_method(method_name, param_vals)
+        # print(f'method: {method}')
         # print(f'method args: {method.args}')
         # print(f'param vals: {param_vals}')
         
@@ -78,8 +90,8 @@ class ObjectDef:
                     self.int.error(ET.NAME_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
             # print(f'self params: {self.params}')
             # print(f'self params dict: {self.params_dict}')
-        # print(f'statement: {statement}')
-        res = self.run_statement(statement, method.rtype)
+        print(f'statement: {statement}')
+        res = calling_obj.run_statement(statement, method.rtype)
         self.params = old_params
         self.params_dict = old_params_dict
         self.returned = False
@@ -101,7 +113,9 @@ class ObjectDef:
                         next = 'false'
                     res += str(next)
                 
+                enablePrint()
                 self.int.output(res)
+                blockPrint()
 
             case self.int.SET_DEF:
                 # if len(statement) != 3:
@@ -245,7 +259,7 @@ class ObjectDef:
     def find_method(self, method_name, param_vals) -> MethodDef:
         for m in self.methods:
             if m.name == method_name and self.check_params(m.args, param_vals):
-                return m
+                return m, self
         if self.super_obj:
             # print(self)
             # print(self.super_obj)
@@ -294,10 +308,14 @@ class ObjectDef:
 
 
     def call_method_aux(self, obj_name, method_name, method_params):
+        print(f'objname: {obj_name}')
+        print(f'methodname: {method_name}\n')
+        print(f'ME {self}\n ENDME')
         res = None
         if obj_name == 'me':
             res = self.call_method(method_name, method_params)
         elif obj_name == 'super':
+            print("in super")
             if not self.super_obj:
                 self.int.error(ET.TYPE_ERROR,
                                f'Invalid call to super class made by class {self.category}')
@@ -306,6 +324,7 @@ class ObjectDef:
             self.int.error(ET.FAULT_ERROR, "Deferencing null object")
         else:
             try:
+                print(f'vaule: {self.resolve_exp(obj_name).value}')
                 res = self.resolve_exp(obj_name).value.call_method(method_name, method_params)
             except AttributeError:
                 self.int.error(ET.FAULT_ERROR, "Deferencing null object")
@@ -316,7 +335,8 @@ class ObjectDef:
     def check_rtype(self, ret_val:VariableDef):
         if (self.rtype in VariableDef.primitives) and (self.rtype == ret_val.type):
             return
-        elif (self.rtype not in VariableDef.primitives) and (ret_val.type is ObjectDef and self.rtype == ret_val.class_type):
+        elif (self.rtype not in VariableDef.primitives) and \
+             (ret_val.type is ObjectDef) and (self.rtype == ret_val.class_type or self.check_child(self.rtype, ret_val.class_type)):
             return
         
         self.int.error(ET.TYPE_ERROR,
@@ -332,7 +352,8 @@ class ObjectDef:
         # print(f'var2: {var2}')
 
         if self.both_obj(var1, var2) and \
-           (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING):
+           (var1.class_type == var2.class_type or var2.class_type == VariableDef.NOTHING or var1.class_type == VariableDef.NOTHING \
+            or self.check_child(var1.class_type, var2.class_type)):
             return
         elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
             return

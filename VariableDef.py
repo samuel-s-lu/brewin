@@ -56,7 +56,7 @@ def create_anon_value(val, class_type=None):
         return VariableDef(int, VariableDef.ANON, int(str(val)), False)
     elif type(val) is str and not class_type:
         return VariableDef(str, VariableDef.ANON, val, False)
-    elif val[0] == '"':
+    elif val[0] == '"' and not class_type:
         s = str(val)
         return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
     elif val == IB.NULL_DEF:
