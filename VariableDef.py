@@ -31,7 +31,7 @@ class VariableDef:
                 raise TypeError("Type of variable does not match assigned value")
             else:
                 self.type = type(value)
-                # self.class_type = self.type
+                self.class_type = self.type
         # print(self.type)
         # print("")
 

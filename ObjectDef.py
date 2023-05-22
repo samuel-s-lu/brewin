@@ -2,7 +2,6 @@
 from intbase import ErrorType as ET
 from MethodDef import MethodDef
 from VariableDef import VariableDef, create_anon_value
-from typing import Type
 
 import sys, os
 
@@ -14,7 +13,7 @@ def blockPrint():
 def enablePrint():
     sys.stdout = sys.__stdout__
 
-blockPrint()
+# blockPrint()
 
 class ObjectDef:
     def __init__(self,
@@ -36,7 +35,7 @@ class ObjectDef:
         self.params_dict = dict()
 
         self.returned = False
-        self.rtype = None
+        # self.rtype = None
 
         self.stack = []
 
@@ -63,11 +62,17 @@ class ObjectDef:
         # if len(param_vals) != len(method.args):
         #     self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
-        self.rtype = method.rtype
+        # self.rtype = method.rtype
+        
         try:
             self.rtype = VariableDef.StrToType[self.rtype]
         except:
             pass
+        try:
+            method.rtype = VariableDef.StrToType[method.rtype]
+        except:
+            pass
+        # print(f'in call self.rtype: {method.rtype}')
 
         statement = method.statement
 
@@ -93,7 +98,7 @@ class ObjectDef:
                     self.int.error(ET.NAME_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
             # print(f'self params: {self.params}')
             # print(f'self params dict: {self.params_dict}')
-        print(f'statement: {statement}')
+        # print(f'statement: {statement}')
         res = calling_obj.run_statement(statement, method.rtype)
         self.params = old_params
         self.params_dict = old_params_dict
@@ -118,7 +123,7 @@ class ObjectDef:
                 
                 enablePrint()
                 self.int.output(res)
-                blockPrint()
+                # blockPrint()
 
             case self.int.SET_DEF:
                 # if len(statement) != 3:
@@ -207,8 +212,8 @@ class ObjectDef:
                     ret_val = self.resolve_exp(statement[1], return_type)
                     # print(statement)
                     # print(f'ret val: {ret_val}')
-                    
-                    self.check_rtype(ret_val)
+                    # print(f'in return def rtype: {return_type}')
+                    self.check_rtype(ret_val, return_type)
                     # print("returned")
 
                     res = ret_val
@@ -311,9 +316,9 @@ class ObjectDef:
 
 
     def call_method_aux(self, obj_name, method_name, method_params):
-        print(f'objname: {obj_name}')
-        print(f'methodname: {method_name}\n')
-        print(f'ME {self}\n ENDME')
+        # print(f'objname: {obj_name}')
+        # print(f'methodname: {method_name}\n')
+        # print(f'ME {self}\n ENDME')
         res = None
         if obj_name == 'me':
             if self.child_obj:
@@ -321,7 +326,7 @@ class ObjectDef:
             else:
                 res = self.call_method(method_name, method_params)
         elif obj_name == 'super':
-            print("in super")
+            # print("in super")
             if not self.super_obj:
                 self.int.error(ET.TYPE_ERROR,
                                f'Invalid call to super class made by class {self.category}')
@@ -330,7 +335,7 @@ class ObjectDef:
             self.int.error(ET.FAULT_ERROR, "Deferencing null object")
         else:
             try:
-                print(f'vaule: {self.resolve_exp(obj_name).value}')
+                # print(f'vaule: {self.resolve_exp(obj_name).value}')
                 res = self.resolve_exp(obj_name).value.call_method(method_name, method_params)
             except AttributeError:
                 self.int.error(ET.FAULT_ERROR, "Deferencing null object")
@@ -339,11 +344,13 @@ class ObjectDef:
 
 
 
-    def check_rtype(self, ret_val:VariableDef):
-        if (self.rtype in VariableDef.primitives) and (self.rtype == ret_val.type):
+    def check_rtype(self, ret_val:VariableDef, return_type):
+        # print(f'self.rtype: {return_type}')
+        # print(f'rev_val type: {ret_val.class_type}')
+        if (return_type in VariableDef.primitives) and (return_type == ret_val.type):
             return
-        elif (self.rtype not in VariableDef.primitives) and \
-             (ret_val.type is ObjectDef) and (self.rtype == ret_val.class_type or self.check_child(self.rtype, ret_val.class_type)):
+        elif (return_type not in VariableDef.primitives) and \
+             (ret_val.type is ObjectDef) and (return_type == ret_val.class_type or self.check_child(return_type, ret_val.class_type)):
             return
         
         self.int.error(ET.TYPE_ERROR,
