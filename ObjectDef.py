@@ -113,7 +113,10 @@ class ObjectDef:
             case self.int.PRINT_DEF:
                 res = ''
                 for i in range(1,len(statement)):
-                    next = self.resolve_exp(statement[i]).value
+                    try:
+                        next = self.resolve_exp(statement[i]).value
+                    except AttributeError:
+                        next = self.resolve_exp(statement[i])
                     # print(next)
                     if next is True:
                         next = 'true'
