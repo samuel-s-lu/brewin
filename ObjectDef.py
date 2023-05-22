@@ -90,8 +90,10 @@ class ObjectDef:
                 try:
                     new_var = VariableDef(arg_type, arg_name, arg_val, True) if arg_type in self.int.class_names else \
                               VariableDef(arg_type, arg_name, arg_val, False)
-                    self.params.add(new_var)
-                    self.params_dict[arg_name] = arg_val
+                    # self.params.add(new_var)
+                    # self.params_dict[arg_name] = arg_val
+                    calling_obj.params.add(new_var)
+                    calling_obj.params_dict[arg_name] = arg_val
                 except TypeError:
                     self.int.error(ET.NAME_ERROR, "Type mismatch in passed arguments and formal parameters")
                 except KeyError:
@@ -100,9 +102,12 @@ class ObjectDef:
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
         res = calling_obj.run_statement(statement, method.rtype)
-        self.params = old_params
-        self.params_dict = old_params_dict
-        self.returned = False
+        # self.params = old_params
+        # self.params_dict = old_params_dict
+        # self.returned = False
+        calling_obj.params = old_params
+        calling_obj.params_dict = old_params_dict
+        calling_obj.returned = False
         # print(f'run statement result: {res}')
         return res
 
@@ -455,7 +460,8 @@ class ObjectDef:
                         res = create_anon_value(exp)
                         if res:
                             return res
-                        
+                        print(exp)
+                        print(self.params)
                         self.int.error(ET.NAME_ERROR,
                                        f'Undefined variable: {exp}')
         
