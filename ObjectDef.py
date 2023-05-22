@@ -266,7 +266,7 @@ class ObjectDef:
             except:
                 if arg_type not in self.int.class_names:
                     self.int.error(ET.TYPE_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
-                if val.class_type != arg_type and not self.check_child(arg_type, val.class_type):
+                if val.class_type != arg_type and not self.check_child(arg_type, val.class_type) and val.class_type != VariableDef.NOTHING:
                     return False
         return True
                 
