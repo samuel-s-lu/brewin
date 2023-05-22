@@ -326,7 +326,7 @@ class ObjectDef:
     def call_method_aux(self, obj_name, method_name, method_params):
         # print(f'objname: {obj_name}')
         # print(f'methodname: {method_name}\n')
-        # print(f'ME {self}\n ENDME')
+        # print(f'ME\n{self}\n ENDME')
         res = None
         if obj_name == 'me':
             if self.child_obj:
@@ -456,12 +456,12 @@ class ObjectDef:
                 except:
                     if exp == 'null' and return_type != 'void':
                         return create_anon_value(exp, return_type)
+                    elif self.returned and exp == 'me':
+                        return create_anon_value(self, return_type)
                     else:
                         res = create_anon_value(exp)
                         if res:
                             return res
-                        print(exp)
-                        print(self.params)
                         self.int.error(ET.NAME_ERROR,
                                        f'Undefined variable: {exp}')
         

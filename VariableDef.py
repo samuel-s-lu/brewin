@@ -46,6 +46,11 @@ class VariableDef:
         self.value = other.value
 
 def create_anon_value(val, class_type=None):
+    if class_type:
+        if val == IB.NULL_DEF:
+            return VariableDef(class_type, VariableDef.ANON, None, True)
+        else:
+            return VariableDef(class_type, VariableDef.ANON, val, True)
     if val == IB.TRUE_DEF:
         return VariableDef(bool, VariableDef.ANON, True, False)
     elif val == IB.FALSE_DEF:
@@ -60,7 +65,6 @@ def create_anon_value(val, class_type=None):
         s = str(val)
         return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
     elif val == IB.NULL_DEF:
-        return VariableDef(class_type, VariableDef.ANON, None, True) if class_type else \
-               VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
+        return VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
     
     return None
