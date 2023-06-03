@@ -1,5 +1,3 @@
-# from ObjectDef import ObjectDef
-
 class MethodDef:
     def __init__(self, rtype, name, args, statement):
         self.rtype = rtype

@@ -135,3 +135,5 @@ dmypy.json
 *.brewin
 tester.py
 update.sh
+tasks.txt
+debug.txt

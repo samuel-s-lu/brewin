@@ -3,7 +3,7 @@ from bparser import BParser
 from ClassDef import ClassDef
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
-from VariableDef import VariableDef, create_anon_value
+from VariableDef import VariableDef, create_anon_value, create_def_value
 
 
 class Interpreter(IB):
@@ -60,41 +60,34 @@ class Interpreter(IB):
                         case IB.FIELD_DEF:
                             field_type = token[1]
                             field_name = token[2]
+
+                            if field_type not in VariableDef.primitives and field_type not in self.class_names:
+                                super().error(ET.TYPE_ERROR,
+                                              f"Attempting to annotate field with an undefined class {field_type}")
+
                             # default initialization
                             if len(token) == 3:
-                                try:
-                                    if field_type in VariableDef.primitives:
-                                        if field_type in {int, 'int'}:
-                                            new_var = VariableDef(field_type, field_name, create_anon_value('0'), False)
-                                        elif field_type in {str, 'str'}:
-                                            new_var = VariableDef(field_type, field_name, create_anon_value(""), False)
-                                        elif field_type in {bool, 'bool'}:
-                                            new_var = VariableDef(field_type, field_name, create_anon_value('false'), False)
-                                    else:
-                                        new_var = VariableDef(field_type, field_name, create_anon_value('null', field_type), True)
-                                    new_class.add_field(new_var)
-                                except TypeError:
-                                    super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
-                                except KeyError:
-                                    super().error(ET.TYPE_ERROR, f"Attempting to annotate field with an undefined class {field_type}")
-
+                                new_var = create_def_value(field_name, field_type)
+                                
                             # initialized with a value
                             else:
                                 if field_type in self.class_names and token[3] != 'null':
                                         super().error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
 
                                 field_value = create_anon_value(token[3]).value
-
                                 try:
                                     if field_type in self.class_names:
                                         new_var = VariableDef(field_type, field_name, field_value, True)
                                     else:
                                         new_var = VariableDef(field_type, field_name, field_value, False)
-                                    new_class.add_field(new_var)
+                                    
                                 except TypeError:
                                     super().error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
                                 except KeyError:
-                                    super().error(ET.TYPE_ERROR, f"Attempting to annotate field with an undefined class {field_type}")
+                                    super().error(ET.TYPE_ERROR,
+                                                  f"Attempting to annotate field with an undefined class {field_type}")
+                            
+                            new_class.add_field(new_var)
 
                         case IB.METHOD_DEF:
                             method_rtype = token[1]

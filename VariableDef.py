@@ -39,8 +39,7 @@ class VariableDef:
         # print("")
 
     def __str__(self):
-        return f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\nClass Type: {self.class_type}\n' if self.class_type else \
-               f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\n'
+        return f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\nClass Type: {self.class_type}\nCurrent Class Type: {self.cur_class_type}'
 
     def __repr__(self):
         return self.__str__()
@@ -71,5 +70,18 @@ def create_anon_value(val, class_type=None):
         return VariableDef(str, VariableDef.ANON, s.strip('"'), False)
     elif val == IB.NULL_DEF:
         return VariableDef(VariableDef.NOTHING, VariableDef.ANON, None, True)
-    
     return None
+
+def create_def_value(name, type):
+    if type in VariableDef.primitives:
+        if type in {int, 'int'}:
+            new_var = create_anon_value('0')
+        elif type in {str, 'string'}:
+            new_var = create_anon_value("")
+        elif type in {bool, 'bool'}:
+            new_var = create_anon_value('false')
+    else:
+        new_var = create_anon_value('null', type)
+
+    new_var.name = name
+    return new_var

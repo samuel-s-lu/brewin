@@ -1,9 +1,8 @@
-# from interpreterv1 import Interpreter
 from intbase import ErrorType as ET
 from MethodDef import MethodDef
-from VariableDef import VariableDef, create_anon_value
+from VariableDef import VariableDef, create_anon_value, create_def_value
 
-import sys, os
+import sys, os, copy
 
 # Disable
 def blockPrint():
@@ -76,8 +75,8 @@ class ObjectDef:
 
         statement = method.statement
 
-        old_params = self.params
-        old_params_dict = self.params_dict
+        old_params = copy.deepcopy(calling_obj.params)
+        old_params_dict = copy.deepcopy(calling_obj.params_dict)
         if param_vals:
             self.params.clear()
             self.params_dict.clear()
@@ -102,11 +101,10 @@ class ObjectDef:
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
         res = calling_obj.run_statement(statement, method.rtype)
-        # self.params = old_params
-        # self.params_dict = old_params_dict
-        # self.returned = False
+
         calling_obj.params = old_params
         calling_obj.params_dict = old_params_dict
+        
         calling_obj.returned = False
         # print(f'run statement result: {res}')
         return res
@@ -119,6 +117,7 @@ class ObjectDef:
                 res = ''
                 for i in range(1,len(statement)):
                     try:
+                        # print(f'statement: {statement}')
                         next = self.resolve_exp(statement[i]).value
                     except AttributeError:
                         next = self.resolve_exp(statement[i])
@@ -250,7 +249,7 @@ class ObjectDef:
     
     def check_child(self, class_type1, class_type2):
         class_def1 = self.int.find_class_def(class_type1)
-        if class_type2 in class_def1.children:
+        if class_type2 in class_def1.children or class_type1 == class_type2:
             return True
         return False
     
@@ -259,6 +258,9 @@ class ObjectDef:
             return False
         for arg, val in zip(method_args, param_vals):
             arg_type = arg[0]
+            # print(f'arg_type: {arg_type}')
+            # print(f'val.type: {val.type}')
+            # print(f'val.class_type: {val.class_type}')
             try:
                 arg_type = VariableDef.StrToType[arg_type]
                 if val.type != arg_type:
@@ -266,7 +268,7 @@ class ObjectDef:
             except:
                 if arg_type not in self.int.class_names:
                     self.int.error(ET.TYPE_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
-                if val.class_type != arg_type and not self.check_child(arg_type, val.class_type) and val.class_type != VariableDef.NOTHING:
+                if val.cur_class_type != arg_type and not self.check_child(arg_type, val.cur_class_type) and val.cur_class_type != VariableDef.NOTHING:
                     return False
         return True
                 
@@ -298,27 +300,33 @@ class ObjectDef:
         var_names = []
         for var in local_vars:
             var_type = var[0]
-            if var_type in self.int.class_names and var[2] != 'null':
-                self.int.error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
-
             var_name = var[1]
             if var_name in var_names:
                 self.int.error(ET.NAME_ERROR,
                                f'Duplicate name in local variable initialization')
-            var_names.append(var_name)
+            if var_type not in VariableDef.primitives and var_type not in self.int.class_names:
+                self.int.error(ET.TYPE_ERROR,
+                              f"Attempting to annotate field with an undefined class {var_type}")
+            # default initialization
+            if len(var) == 2:
+                new_var = create_def_value(var_name, var_type)
+            # specific initialization
+            else:
+                if var_type in self.int.class_names and var[2] != 'null':
+                    self.int.error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
 
-            var_value = create_anon_value(var[2]).value
+                var_names.append(var_name)
 
-            try:
-                new_var = VariableDef(var_type, var_name, var_value, True) if var_type in self.int.class_names else \
-                            VariableDef(var_type, var_name, var_value, False)
-                temp.append(new_var)
-            except TypeError:
-                self.int.error(ET.TYPE_ERROR, "Field and initial value assignment type mismatch")
-            except KeyError:
-                self.int.error(ET.TYPE_ERROR, "Attempting to annotate field with an undefined class")
-            except:
-                self.int.error(ET.TYPE_ERROR, "Error in local variable initialization")
+                var_value = create_anon_value(var[2]).value
+
+                try:
+                    new_var = VariableDef(var_type, var_name, var_value, True) if var_type in self.int.class_names else \
+                                VariableDef(var_type, var_name, var_value, False)
+                except TypeError:
+                    self.int.error(ET.TYPE_ERROR, "Local variable and initial value assignment type mismatch")
+                except KeyError:
+                    self.int.error(ET.TYPE_ERROR, f"Attempting to annotate local variable with an undefined class {var_type}")
+            temp.append(new_var)
         
         self.stack.append(temp)
 
@@ -383,7 +391,7 @@ class ObjectDef:
 
         if self.both_obj(var1, var2) and \
            (var1.cur_class_type == var2.cur_class_type or var2.cur_class_type == VariableDef.NOTHING or var1.cur_class_type == VariableDef.NOTHING \
-            or self.check_child(var1.cur_class_type, var2.cur_class_type)):
+            or self.check_child(var1.class_type, var2.cur_class_type)):
             return
         elif (not self.both_obj(var1, var2)) and (var1.type == var2.type):
             return
@@ -415,7 +423,8 @@ class ObjectDef:
 
         # print(f'self.rtype: {self.rtype}')
         # print(f'target_name: {target_name}')
-
+        # print(f'var: {var}')
+        # print(f'new val: {new_val}')
         self.type_check(var, new_val)
         self.update_var(var, new_val, var_scope)
         
@@ -458,6 +467,11 @@ class ObjectDef:
             else:
                 # print(f'exp: {exp}')
                 try:
+                    # print(exp)
+                    # if exp == 'y':
+                        # print(f'let stack: {self.stack}')
+                        # print(f'self.params: {self.params}')
+                        # print(f'self.fields: {self.fields}')
                     var, _ = self.find_var(exp)
                     return var
                 except:
@@ -469,6 +483,7 @@ class ObjectDef:
                         res = create_anon_value(exp)
                         if res:
                             return res
+                        print(f'stack: {self.stack}')
                         self.int.error(ET.NAME_ERROR,
                                        f'Undefined variable: {exp}')
         
