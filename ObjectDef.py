@@ -698,10 +698,18 @@ class ObjectDef:
             case self.int.NEW_DEF:
                 class_name = exp[1]
                 spec_types = None
+                num_spec_types = None
                 if '@' in class_name:
                     spec_types = class_name.split('@')[1:]
+                    num_spec_types = len(spec_types)
                 c_name = class_name.split('@')[0]
                 class_def = self.int.find_class_def(c_name)
+
+                num_class_parametrized_types = len(class_def.spec_types.keys())
+                if num_spec_types and num_spec_types != num_class_parametrized_types:
+                    self.int.error(ET.TYPE_ERROR,
+                                   f'Invalid templated type {class_name}')
+
                 obj = class_def.instantiate_object(spec_types)
                 
                 res = VariableDef(class_name, VariableDef.ANON, obj, True)

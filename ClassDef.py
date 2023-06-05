@@ -82,7 +82,7 @@ class ClassDef:
 
     def replace_fields(self, spec_types):
         fields = copy.deepcopy(self.fields)
-        print(f'old fields: {fields}\n')
+        # print(f'old fields: {fields}\n')
         if fields:
             for field in fields:
                 if not isinstance(field.class_type, type) and '@' in field.class_type:
@@ -115,11 +115,11 @@ class ClassDef:
                             if field.value is None:
                                 temp = create_def_value(field.name, field.type)
                                 field.value = temp.value
-                            print(f'field: {field}')
+                            # print(f'field: {field}')
                         except KeyError:
                             pass
         
-        print(f'new fields: {fields}\n')
+        # print(f'new fields: {fields}\n')
         return fields
 
     
