@@ -22,8 +22,10 @@ class ClassDef:
             self.super_obj = self.super_class_def.instantiate_object()
         self.children = set()
 
+        self.spec_types = dict()
+
     def __str__(self):
-        return f'Class {self.class_name}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
+        return f'Class {self.class_name}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\nParametrized types: {self.spec_types}\n'
 
     def __repr__(self):
         return self.__str__()
@@ -34,9 +36,11 @@ class ClassDef:
             self.super_class_def.add_child(class_name)
 
 
-    def instantiate_object(self) -> ObjectDef:
+    def instantiate_object(self, parametrized_types=None) -> ObjectDef:
         # print(self.fields)
-        return ObjectDef(self.class_name, copy.deepcopy(self.fields), self.methods, self.int, self.super_class_name, self.super_obj, self.children)
+        return ObjectDef(self.class_name, copy.deepcopy(self.fields), self.methods, self.int,
+                         self.super_class_name, self.super_obj, self.children, parametrized_types)
+
     
 
     def add_field(self, var: VariableDef):

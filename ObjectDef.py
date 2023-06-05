@@ -22,7 +22,8 @@ class ObjectDef:
                  interpreter,
                  super_class_name,
                  super_obj,
-                 children):
+                 children,
+                 parametrized_types):
         
         self.category = category
         self.fields = fields
@@ -45,8 +46,13 @@ class ObjectDef:
         if self.super_obj:
             self.super_obj.child_obj = self
 
+        self.parametrized_mapping = None
+        if parametrized_types:
+            c_def = self.int.find_class_def(self.category)
+            self.parametrized_mapping = {k:v for k,v in zip(c_def.spec_types.keys(), parametrized_types)}
+
     def __str__(self):
-        return f'Category {self.category}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
+        return f'Category {self.category}\nParametrized Mapping: {self.parametrized_mapping}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
 
     def __repr__(self):
         return self.__str__()
@@ -145,6 +151,7 @@ class ObjectDef:
                 target_name = statement[1]
                 # print(f'target name: {target_name}')
                 new_anon_val = self.resolve_exp(statement[2], return_type)
+                # print(f'new anon val: {new_anon_val}')
                 # print(f'new val: {new_val}\n===\n')
 
                 self.set_var(target_name, new_anon_val)
@@ -248,7 +255,13 @@ class ObjectDef:
         return res
     
     def check_child(self, class_type1, class_type2):
-        class_def1 = self.int.find_class_def(class_type1)
+        # return false if either class type is a parametrized type
+        if self.parametrized_mapping:
+            if class_type1 in self.parametrized_mapping or class_type2 in self.parametrized_mapping:
+                return False
+        
+        # check child on either side
+        class_def1 = self.int.find_class_def(class_type1.split('@')[0])
         if class_type2 in class_def1.children or class_type1 == class_type2:
             return True
         return False
@@ -266,8 +279,9 @@ class ObjectDef:
                 if val.type != arg_type:
                     return False
             except:
-                if arg_type not in self.int.class_names:
-                    self.int.error(ET.TYPE_ERROR, f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
+                if arg_type not in self.int.class_names and arg_type not in self.parametrized_mapping.keys():
+                    self.int.error(ET.TYPE_ERROR,
+                                   f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
                 if val.cur_class_type != arg_type and not self.check_child(arg_type, val.cur_class_type) and val.cur_class_type != VariableDef.NOTHING:
                     return False
         return True
@@ -275,9 +289,20 @@ class ObjectDef:
 
 
     def find_method(self, method_name, param_vals) -> MethodDef:
+        # print(f'self: {self}\n\n\n')
         for m in self.methods:
+            # print(f'old args: {m.args}')
             if m.name == method_name and self.check_params(m.args, param_vals):
                 return m, self
+            if self.parametrized_mapping:
+                # print(f'mapping: {self.parametrized_mapping}')
+                # print(f'type: {type(list(self.parametrized_mapping[m.args[0][0]]))}')
+                for arg in m.args:
+                    arg[0] = self.parametrized_mapping[arg[0]]
+                # print(f'new args: {m.args}')
+                if m.name == method_name and self.check_params(m.args, param_vals):
+                    return m, self
+
         if self.super_obj:
             # print(self)
             # print(self.super_obj)
@@ -301,27 +326,54 @@ class ObjectDef:
         for var in local_vars:
             var_type = var[0]
             var_name = var[1]
+            if var_type not in VariableDef.primitives:
+                c_def = self.int.find_class_def(var_type.split('@')[0])
+
             if var_name in var_names:
                 self.int.error(ET.NAME_ERROR,
                                f'Duplicate name in local variable initialization')
-            if var_type not in VariableDef.primitives and var_type not in self.int.class_names:
+                
+            if var_type not in VariableDef.primitives and \
+               c_def.class_name not in self.int.class_names and \
+               var_type not in c_def.spec_types.keys():
                 self.int.error(ET.TYPE_ERROR,
-                              f"Attempting to annotate field with an undefined class {var_type}")
+                              f"Attempting to annotate var with an undefined class {var_type}")
+                
+            # checks for parametric var type
+            if '@' in var_type:
+                num_class_spec_types = len(c_def.spec_types.keys())
+                num_var_spec_types = len(var_type.split('@')) - 1
+
+                # check number of var parametric types match with the number that the template requires
+                if num_class_spec_types != num_var_spec_types:
+                    super().error(ET.TYPE_ERROR,
+                                    f'var {var_name} has {num_var_spec_types} types while class {c_def.class_name} require {num_class_spec_types} parametric types')
+                
+                # check that each parametric type is valid
+                types = var_type.split('@')[1:]
+                for t in types:
+                    if t not in VariableDef.primitives and \
+                        t not in self.int.class_names:
+                        super().error(ET.TYPE_ERROR,
+                                        f"var {var_name} has illegal type {t} within its type")
+                        
             # default initialization
             if len(var) == 2:
                 new_var = create_def_value(var_name, var_type)
+                
             # specific initialization
             else:
-                if var_type in self.int.class_names and var[2] != 'null':
+                if (var_type in self.int.class_names or '@' in var_type) and var[2] != 'null':
                     self.int.error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
 
                 var_names.append(var_name)
-
                 var_value = create_anon_value(var[2]).value
 
                 try:
-                    new_var = VariableDef(var_type, var_name, var_value, True) if var_type in self.int.class_names else \
-                                VariableDef(var_type, var_name, var_value, False)
+                    if c_def.class_name in self.int.class_names:
+                        new_var = VariableDef(var_type, var_name, var_value, True)
+                    else:
+                        new_var = VariableDef(var_type, var_name, var_value, False)
                 except TypeError:
                     self.int.error(ET.TYPE_ERROR, "Local variable and initial value assignment type mismatch")
                 except KeyError:
@@ -347,6 +399,9 @@ class ObjectDef:
                 self.int.error(ET.TYPE_ERROR,
                                f'Invalid call to super class made by class {self.category}')
             res = self.super_obj.call_method(method_name, method_params)
+        # elif '@' in obj_name:
+        #     print(1234)
+        #     pass
         elif (type(obj_name) is not list) and (obj_name in self.fields_dict.keys()) and (self.resolve_exp(obj_name) == None):
             self.int.error(ET.FAULT_ERROR, "Deferencing null object")
         else:
@@ -483,7 +538,6 @@ class ObjectDef:
                         res = create_anon_value(exp)
                         if res:
                             return res
-                        print(f'stack: {self.stack}')
                         self.int.error(ET.NAME_ERROR,
                                        f'Undefined variable: {exp}')
         
@@ -590,8 +644,12 @@ class ObjectDef:
 
             case self.int.NEW_DEF:
                 class_name = exp[1]
-                class_def = self.int.find_class_def(class_name)
-                obj = class_def.instantiate_object()
+                spec_types = None
+                if '@' in class_name:
+                    spec_types = class_name.split('@')[1:]
+                c_name = class_name.split('@')[0]
+                class_def = self.int.find_class_def(c_name)
+                obj = class_def.instantiate_object(spec_types)
                 
                 res = VariableDef(class_name, VariableDef.ANON, obj, True)
                 # print(res.value)

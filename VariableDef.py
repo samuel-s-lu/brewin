@@ -6,11 +6,11 @@ class VariableDef:
 
     primitives = {'int', 'string', 'bool', int, str, bool}
 
-    ANON = 'HASH: IHEARTMEIMEI'
-    NOTHING = 'HASH: SAMMEI5EVER'
-    LOCAL = 'HASH: HAMMYWIZZY'
-    PARAM = 'HASH: XIAOBAOBEI'
-    FIELD = 'HASH: ERIKISDEAD'
+    ANON = 'ANON HASH: IHEARTMEIMEI'
+    NOTHING = 'NOTHING HASH: SAMMEI5EVER'
+    LOCAL = 'LOCAL HASH: HAMMYWIZZY'
+    PARAM = 'PARAM HASH: XIAOBAOBEI'
+    FIELD = 'FIELD HASH: ERIKISDEAD'
 
     def __init__(self, var_type, name, value, isObj):
         self.name = name
@@ -39,7 +39,7 @@ class VariableDef:
         # print("")
 
     def __str__(self):
-        return f'Variable Name: {self.name}\nValue: {self.value}\nType: {self.type}\nClass Type: {self.class_type}\nCurrent Class Type: {self.cur_class_type}'
+        return f'Variable Name: {self.name}\nType: {self.type}\nClass Type: {self.class_type}\nCurrent Class Type: {self.cur_class_type}\nValue: {self.value}\n'
 
     def __repr__(self):
         return self.__str__()
