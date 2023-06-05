@@ -273,8 +273,8 @@ class ObjectDef:
 
     
     def check_params(self, method_args, param_vals:list[VariableDef]) -> bool:
-        print(f'method_args: {method_args}')
-        print(f'param_vals: {param_vals}\n\n')
+        # print(f'method_args: {method_args}')
+        # print(f'param_vals: {param_vals}\n\n')
         if len(method_args) != len(param_vals):
             return False
         for arg, val in zip(method_args, param_vals):
@@ -338,13 +338,13 @@ class ObjectDef:
 
             if var_name in var_names:
                 self.int.error(ET.NAME_ERROR,
-                               f'Duplicate name in local variable initialization')
+                               f'Duplicate name {var_name} in local variable initialization')
                 
             if var_type not in VariableDef.primitives and \
                c_def.class_name not in self.int.class_names and \
                var_type not in c_def.spec_types.keys():
                 self.int.error(ET.TYPE_ERROR,
-                              f"Attempting to annotate var with an undefined class {var_type}")
+                              f"Attempting to annotate local var {var_name} with an undefined class {var_type}")
                 
             # checks for parametric var type
             if '@' in var_type:
@@ -353,16 +353,16 @@ class ObjectDef:
 
                 # check number of var parametric types match with the number that the template requires
                 if num_class_spec_types != num_var_spec_types:
-                    super().error(ET.TYPE_ERROR,
-                                    f'var {var_name} has {num_var_spec_types} types while class {c_def.class_name} require {num_class_spec_types} parametric types')
+                    self.int.error(ET.TYPE_ERROR,
+                                    f'Local var {var_name} has {num_var_spec_types} parametric types while class {c_def.class_name} require {num_class_spec_types} parametric types')
                 
                 # check that each parametric type is valid
                 types = var_type.split('@')[1:]
                 for t in types:
                     if t not in VariableDef.primitives and \
                         t not in self.int.class_names:
-                        super().error(ET.TYPE_ERROR,
-                                        f"var {var_name} has illegal type {t} within its type")
+                        self.int.error(ET.TYPE_ERROR,
+                                        f"Local var {var_name} has illegal type {t} within its type")
                         
             # default initialization
             if len(var) == 2:
