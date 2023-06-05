@@ -48,9 +48,9 @@ class ClassDef:
             return ObjectDef(self.class_name, fields, methods, self.int,
                              self.super_class_name, self.super_obj, self.children, parametrized_types)
 
-            print(f'spec types: {self.spec_types}\n')
-            print(f'fields: {self.fields}\n')
-            print(f'methods: {self.methods}\n')
+            # print(f'spec types: {self.spec_types}\n')
+            # print(f'fields: {self.fields}\n')
+            # print(f'methods: {self.methods}\n')
 
 
     def replace_methods(self, spec_types):
@@ -59,12 +59,15 @@ class ClassDef:
             for m in methods:
                 if m.rtype in spec_types.keys():
                     m.rtype = spec_types[m.rtype]
-                if '@' in m.rtype:
+                if not isinstance(m.rtype, type) and '@' in m.rtype:
                     class_name = m.rtype.split('@')[0]
                     types = m.rtype.split('@')[1:]
                     res = [class_name]
                     for t in types:
-                        res.append(spec_types[t])
+                        try:
+                            res.append(spec_types[t])
+                        except:
+                            res.append(t)
                     m.rtype = '@'.join(res)
                 for arg in m.args:
                     if '@' in arg[0]:
@@ -82,19 +85,28 @@ class ClassDef:
         # print(f'old fields: {fields}\n')
         if fields:
             for field in fields:
-                if '@' in field.class_type:
+                if not isinstance(field.class_type, type) and '@' in field.class_type:
                     class_name = field.class_type.split('@')[0]
                     types = field.class_type.split('@')[1:]
                     res = [class_name]
                     for t in types:
-                        res.append(spec_types[t])
+                        try:
+                            res.append(spec_types[t])
+                        except:
+                            pass
                     field.class_type = '@'.join(res)
                     field.cur_class_type = field.class_type
                 else:
-                    field.class_type = spec_types[field.class_type]
+                    try:
+                        field.class_type = spec_types[field.class_type]
+                    except:
+                        pass
                     field.cur_class_type = field.class_type
                     if field.class_type in VariableDef.primitives:
-                        field.type = VariableDef.StrToType[field.class_type]
+                        try:
+                            field.type = VariableDef.StrToType[field.class_type]
+                        except:
+                            pass
         # print(f'new fields: {fields}\n')
         return fields
 
