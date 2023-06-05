@@ -38,7 +38,7 @@ class ClassDef:
 
     def instantiate_object(self, parametrized_types=None) -> ObjectDef:
         # print(self.fields)
-        return ObjectDef(self.class_name, copy.deepcopy(self.fields), self.methods, self.int,
+        return ObjectDef(self.class_name, copy.deepcopy(self.fields), copy.deepcopy(self.methods), self.int,
                          self.super_class_name, self.super_obj, self.children, parametrized_types)
 
     

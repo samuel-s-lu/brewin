@@ -46,10 +46,10 @@ class ObjectDef:
         if self.super_obj:
             self.super_obj.child_obj = self
 
+        self.class_def = self.int.find_class_def(self.category)
         self.parametrized_mapping = dict()
         if parametrized_types:
-            c_def = self.int.find_class_def(self.category)
-            self.parametrized_mapping = {k:v for k,v in zip(c_def.spec_types.keys(), parametrized_types)}
+            self.parametrized_mapping = {k:v for k,v in zip(self.class_def.spec_types.keys(), parametrized_types)}
 
     def __str__(self):
         return f'Category {self.category}\nParametrized Mapping: {self.parametrized_mapping}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
@@ -112,7 +112,8 @@ class ObjectDef:
         calling_obj.params_dict = old_params_dict
         
         calling_obj.returned = False
-        # print(f'run statement result: {res}')
+        
+        calling_obj.reset_methods()
         return res
 
 
@@ -266,7 +267,14 @@ class ObjectDef:
             return True
         return False
     
+    
+    def reset_methods(self):
+        self.methods = copy.deepcopy(self.class_def.methods)
+
+    
     def check_params(self, method_args, param_vals:list[VariableDef]) -> bool:
+        print(f'method_args: {method_args}')
+        print(f'param_vals: {param_vals}\n\n')
         if len(method_args) != len(param_vals):
             return False
         for arg, val in zip(method_args, param_vals):
@@ -285,10 +293,10 @@ class ObjectDef:
                 if val.cur_class_type != arg_type and not self.check_child(arg_type, val.cur_class_type) and val.cur_class_type != VariableDef.NOTHING:
                     return False
         return True
-                
 
 
     def find_method(self, method_name, param_vals) -> MethodDef:
+        # print(f'\n\nin method {method_name}')
         # print(f'self: {self}\n\n\n')
         for m in self.methods:
             # print(f'old args: {m.args}')
@@ -296,7 +304,6 @@ class ObjectDef:
                 return m, self
             if self.parametrized_mapping:
                 # print(f'mapping: {self.parametrized_mapping}')
-                # print(f'type: {type(list(self.parametrized_mapping[m.args[0][0]]))}')
                 for arg in m.args:
                     arg[0] = self.parametrized_mapping[arg[0]]
                 # print(f'new args: {m.args}')
