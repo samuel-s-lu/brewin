@@ -61,6 +61,10 @@ class ObjectDef:
 
     
     def call_method(self, method_name, param_vals):
+        # print(f'self: {self}')
+        if self.parametrized_mapping:
+            spec_types = self.parametrized_mapping.values()
+            self = self.class_def.instantiate_object(spec_types)
         method, calling_obj = self.find_method(method_name, param_vals)
         # print(f'method: {method}')
         # print(f'method args: {method.args}')
@@ -109,7 +113,7 @@ class ObjectDef:
                 arg_type = param[0]
                 arg_name = param[1]
                 try:
-                    new_var = VariableDef(arg_type, arg_name, arg_val, True) if arg_type in self.int.class_names else \
+                    new_var = VariableDef(arg_type, arg_name, arg_val, True) if arg_type.split('@')[0] in self.int.class_names else \
                               VariableDef(arg_type, arg_name, arg_val, False)
                     # self.params.add(new_var)
                     # self.params_dict[arg_name] = arg_val
@@ -153,7 +157,7 @@ class ObjectDef:
                     # print(f'e: {e}')
                     message = [['string', 'exception', str(e)]]
                     self.add_to_let_stack(message)
-                    self.run_statement(statement[2], return_type)
+                    res = self.run_statement(statement[2], return_type)
                     self.stack.pop()
             case self.int.PRINT_DEF:
                 res = ''
@@ -326,7 +330,8 @@ class ObjectDef:
                 if val.type != arg_type:
                     return False
             except:
-                if arg_type not in self.int.class_names and arg_type not in self.parametrized_mapping.keys():
+                if arg_type.split('@')[0] not in self.int.class_names and \
+                   arg_type not in self.parametrized_mapping.keys():
                     self.int.error(ET.TYPE_ERROR,
                                    f"Attempting to pass in an argument annotated with an undefined class: {arg_type}")
                 if val.cur_class_type != arg_type and not self.check_child(arg_type, val.cur_class_type) and val.cur_class_type != VariableDef.NOTHING:
@@ -394,6 +399,16 @@ class ObjectDef:
                 num_class_spec_types = len(c_def.spec_types.keys())
                 num_var_spec_types = len(var_type.split('@')) - 1
 
+                class_name = var_type.split('@')[0]
+                types = var_type.split('@')[1:]
+                res = [class_name]
+                for t in types:
+                    try:
+                        res.append(self.parametrized_mapping[t])
+                    except:
+                        res.append(t)
+                var_type = '@'.join(res)
+
                 # check number of var parametric types match with the number that the template requires
                 if num_class_spec_types != num_var_spec_types:
                     self.int.error(ET.TYPE_ERROR,
@@ -403,7 +418,9 @@ class ObjectDef:
                 types = var_type.split('@')[1:]
                 for t in types:
                     if t not in VariableDef.primitives and \
-                        t not in self.int.class_names:
+                        t not in self.int.class_names and \
+                        t not in self.parametrized_mapping.keys() and \
+                        t not in self.parametrized_mapping.values():
                         self.int.error(ET.TYPE_ERROR,
                                         f"Local var {var_name} has illegal type {t} within its type")
                         
@@ -479,7 +496,7 @@ class ObjectDef:
             return
         
         self.int.error(ET.TYPE_ERROR,
-                       f'Inconsistency between method return type and the type of the returned value')
+                       f'Inconsistency between method return type ({return_type}) and the type of the returned value ({ret_val.class_type})')
 
 
     def type_check(self, var1:VariableDef, var2:VariableDef):
@@ -702,7 +719,16 @@ class ObjectDef:
                 num_spec_types = None
                 if '@' in class_name:
                     spec_types = class_name.split('@')[1:]
+                    class_name = class_name.split('@')[0]
                     num_spec_types = len(spec_types)
+
+                    res = [class_name]
+                    for t in spec_types:
+                        try:
+                            res.append(self.parametrized_mapping[t])
+                        except:
+                            res.append(t)
+                    class_name = '@'.join(res)
                 c_name = class_name.split('@')[0]
                 class_def = self.int.find_class_def(c_name)
 
@@ -713,6 +739,7 @@ class ObjectDef:
 
                 obj = class_def.instantiate_object(spec_types)
                 
+                # print(f'classname: {class_name}')
                 res = VariableDef(class_name, VariableDef.ANON, obj, True)
                 # print(res.value)
                 # print(res.value.super_obj)

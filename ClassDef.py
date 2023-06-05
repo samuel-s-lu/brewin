@@ -43,7 +43,9 @@ class ClassDef:
         else:
             spec_types = {k:v for k,v in zip(self.spec_types.keys(), parametrized_types)}
             fields = self.replace_fields(spec_types)
+            # print(f'old methods: {self.methods}')
             methods = self.replace_methods(spec_types)
+            # print(f'new methods: {methods}')
 
             return ObjectDef(self.class_name, fields, methods, self.int,
                              self.super_class_name, self.super_obj, self.children, parametrized_types)
