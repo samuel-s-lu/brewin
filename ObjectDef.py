@@ -733,7 +733,10 @@ class ObjectDef:
                             res.append(t)
                     class_name = '@'.join(res)
                 c_name = class_name.split('@')[0]
-                class_def = self.int.find_class_def(c_name)
+                if c_name in self.int.class_names:
+                    class_def = self.int.find_class_def(c_name)
+                else:
+                    class_def = self.int.find_class_def(self.parametrized_mapping[c_name])
 
                 num_class_parametrized_types = len(class_def.spec_types.keys())
                 if num_spec_types and num_spec_types != num_class_parametrized_types:
