@@ -474,7 +474,7 @@ class ObjectDef:
         else:
             try:
                 # print(f'vaule: {self.resolve_exp(obj_name).value}')
-                print(f'objname: {obj_name}')
+                # print(f'objname: {obj_name}')
                 res = self.resolve_exp(obj_name).value.call_method(method_name, method_params)
             except AttributeError:
                 self.int.error(ET.FAULT_ERROR, "Deferencing null object")
@@ -599,7 +599,7 @@ class ObjectDef:
                         # print(f'self.params: {self.params}')
                         # print(f'self.fields: {self.fields}')
                     var, _ = self.find_var(exp)
-                    print(f'var in resolve: {var}')
+                    # print(f'var in resolve: {var}')
                     return var
                 except:
                     if exp == 'null' and return_type != 'void':
@@ -608,7 +608,7 @@ class ObjectDef:
                         # print(f'anon value: {create_anon_value(self, return_type)}')
                         return create_anon_value(self, return_type)
                     else:
-                        print(f'exp in resolve: {exp}')
+                        # print(f'exp in resolve: {exp}')
                         res = create_anon_value(exp)
                         if res:
                             return res

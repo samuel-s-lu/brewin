@@ -134,12 +134,12 @@ class Interpreter(IB):
                         method_statement = token[4]
 
                         # check for duplicate formal params
-                        # if method_args:
-                        #     arg_names = [arg[1] for arg in method_args]
-                        #     max_freq = max(map(lambda x: arg_names.count(x), arg_names))
-                        #     if max_freq > 1:
-                        #         super().error(ET.NAME_ERROR,
-                        #                     f'Duplicate formal parameters for method {method_name}')
+                        if method_args:
+                            arg_names = [arg[1] for arg in method_args]
+                            max_freq = max(map(lambda x: arg_names.count(x), arg_names))
+                            if max_freq > 1:
+                                super().error(ET.NAME_ERROR,
+                                            f'Duplicate formal parameters for method {method_name}')
 
                         try:
                             method_rtype = VariableDef.StrToType[method_rtype]
