@@ -64,7 +64,7 @@ class ObjectDef:
         # print(f'self: {self}')
         if self.parametrized_mapping:
             spec_types = self.parametrized_mapping.values()
-            self = self.class_def.instantiate_object(spec_types)
+            # self = self.class_def.instantiate_object(spec_types)
         method, calling_obj = self.find_method(method_name, param_vals)
         # print(f'method: {method}')
         # print(f'method args: {method.args}')
@@ -135,7 +135,7 @@ class ObjectDef:
         
         calling_obj.returned = False
         
-        calling_obj.reset_methods()
+        # calling_obj.reset_methods()
         return res
 
 
@@ -147,7 +147,7 @@ class ObjectDef:
                 if message.type not in {str, 'str'}:
                     self.int.error(ET.TYPE_ERROR, f'Attempting throw message of type {message.type}')
                 
-                if self.in_let:
+                if self.in_let and not self.returned:
                     self.stack.pop()
                 raise Bruinception(message.value)
             case self.int.TRY_DEF:
@@ -474,6 +474,7 @@ class ObjectDef:
         else:
             try:
                 # print(f'vaule: {self.resolve_exp(obj_name).value}')
+                print(f'objname: {obj_name}')
                 res = self.resolve_exp(obj_name).value.call_method(method_name, method_params)
             except AttributeError:
                 self.int.error(ET.FAULT_ERROR, "Deferencing null object")
@@ -598,6 +599,7 @@ class ObjectDef:
                         # print(f'self.params: {self.params}')
                         # print(f'self.fields: {self.fields}')
                     var, _ = self.find_var(exp)
+                    print(f'var in resolve: {var}')
                     return var
                 except:
                     if exp == 'null' and return_type != 'void':
@@ -606,6 +608,7 @@ class ObjectDef:
                         # print(f'anon value: {create_anon_value(self, return_type)}')
                         return create_anon_value(self, return_type)
                     else:
+                        print(f'exp in resolve: {exp}')
                         res = create_anon_value(exp)
                         if res:
                             return res
