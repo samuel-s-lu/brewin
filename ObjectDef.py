@@ -1,6 +1,7 @@
 from intbase import ErrorType as ET
 from MethodDef import MethodDef
 from VariableDef import VariableDef, create_anon_value, create_def_value
+from Bruinception import Bruinception
 
 import sys, os, copy
 
@@ -49,6 +50,8 @@ class ObjectDef:
         self.parametrized_mapping = dict()
         if parametrized_types:
             self.parametrized_mapping = {k:v for k,v in zip(self.class_def.spec_types.keys(), parametrized_types)}
+
+        self.in_let = False
 
     def __str__(self):
         return f'Category {self.category}\nParametrized Mapping: {self.parametrized_mapping}\nFields: {self.fields}\nMethods: {self.methods}\nSuper Class: {self.super_class_name}\nChildren: {self.children}\n'
@@ -119,6 +122,8 @@ class ObjectDef:
             # print(f'self params: {self.params}')
             # print(f'self params dict: {self.params_dict}')
         # print(f'statement: {statement}')
+
+        # try:
         res = calling_obj.run_statement(statement, method.rtype)
 
         calling_obj.params = old_params
@@ -133,6 +138,23 @@ class ObjectDef:
     def run_statement(self, statement, return_type=None):
         res = None
         match statement[0]:
+            case self.int.THROW_DEF:
+                message = self.resolve_exp(statement[1], return_type)
+                if message.type not in {str, 'str'}:
+                    self.int.error(ET.TYPE_ERROR, f'Attempting throw message of type {message.type}')
+                
+                if self.in_let:
+                    self.stack.pop()
+                raise Bruinception(message.value)
+            case self.int.TRY_DEF:
+                try:
+                    self.run_statement(statement[1], return_type)
+                except Bruinception as e:
+                    # print(f'e: {e}')
+                    message = [['string', 'exception', str(e)]]
+                    self.add_to_let_stack(message)
+                    self.run_statement(statement[2], return_type)
+                    self.stack.pop()
             case self.int.PRINT_DEF:
                 res = ''
                 for i in range(1,len(statement)):
@@ -250,6 +272,7 @@ class ObjectDef:
                         res = self.def_return(return_type)
 
             case self.int.LET_DEF:
+                self.in_let = True
                 local_vars = statement[1]
                 self.add_to_let_stack(local_vars)
 
@@ -258,12 +281,14 @@ class ObjectDef:
                     res = self.run_statement(statement[i], return_type)
                     if self.returned:
                         self.stack.pop()
+                        self.in_let = False
                         return res
                     
                 if return_type != 'void':
                     res = self.def_return(return_type)
                 
                 self.stack.pop()
+                self.in_let = False
 
                 
         return res

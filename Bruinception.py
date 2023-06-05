@@ -1,0 +1,2 @@
+class Bruinception(Exception):
+    pass
