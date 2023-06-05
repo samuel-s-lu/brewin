@@ -104,7 +104,9 @@ class Interpreter(IB):
                         else:
                             # if field_type.split('@')[0] in self.class_names:
                             #     super().error(ET.TYPE_ERROR, 'Parametrized types may not be initialized with a value')
-                            if (field_type in self.class_names or '@' in field_type) and token[3] != 'null':
+                            if (field_type in self.class_names or \
+                                '@' in field_type) and \
+                                token[3] != 'null':
                                 super().error(ET.TYPE_ERROR, "Object fields must be initialized to 'null'")
 
                             field_value = create_anon_value(token[3]).value

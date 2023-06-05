@@ -1,5 +1,5 @@
 from intbase import ErrorType as ET
-from VariableDef import VariableDef
+from VariableDef import VariableDef, create_def_value
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
 import copy
@@ -82,7 +82,7 @@ class ClassDef:
 
     def replace_fields(self, spec_types):
         fields = copy.deepcopy(self.fields)
-        # print(f'old fields: {fields}\n')
+        print(f'old fields: {fields}\n')
         if fields:
             for field in fields:
                 if not isinstance(field.class_type, type) and '@' in field.class_type:
@@ -105,12 +105,21 @@ class ClassDef:
                     if field.class_type in VariableDef.primitives:
                         try:
                             field.type = VariableDef.StrToType[field.class_type]
-                        except:
+                            # print(f'field type: {field.type}')
+                            # print(f'field value: {field.value}')
+                            # print(f'field value type: {type(field.value)}')
+                            # print(isinstance(field.value, field.type))
+                            if field.value and not isinstance(field.value, field.type):
+                                self.int.error(ET.TYPE_ERROR,
+                                               f'Type mismatch for field {field.name}: {field.type} and {type(field.value)}')
+                            if field.value is None:
+                                temp = create_def_value(field.name, field.type)
+                                field.value = temp.value
+                            print(f'field: {field}')
+                        except KeyError:
                             pass
-                        if not isinstance(field.value, field.type):
-                            self.int.error(ET.TYPE_ERROR,
-                                           f'Type mismatch for field {field.name}: {field.type} and {type(field.value)}')
-        # print(f'new fields: {fields}\n')
+        
+        print(f'new fields: {fields}\n')
         return fields
 
     
