@@ -46,7 +46,7 @@ class ObjectDef:
         if self.super_obj:
             self.super_obj.child_obj = self
 
-        self.parametrized_mapping = None
+        self.parametrized_mapping = dict()
         if parametrized_types:
             c_def = self.int.find_class_def(self.category)
             self.parametrized_mapping = {k:v for k,v in zip(c_def.spec_types.keys(), parametrized_types)}
@@ -370,7 +370,7 @@ class ObjectDef:
                 var_value = create_anon_value(var[2]).value
 
                 try:
-                    if c_def.class_name in self.int.class_names:
+                    if var_type not in VariableDef.primitives:
                         new_var = VariableDef(var_type, var_name, var_value, True)
                     else:
                         new_var = VariableDef(var_type, var_name, var_value, False)

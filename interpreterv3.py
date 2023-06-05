@@ -4,7 +4,6 @@ from ClassDef import ClassDef
 from MethodDef import MethodDef
 from ObjectDef import ObjectDef
 from VariableDef import VariableDef, create_anon_value, create_def_value
-from TemplatedClassDef import TemplatedClassDef
 
 
 class Interpreter(IB):
