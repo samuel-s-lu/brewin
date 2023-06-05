@@ -148,7 +148,7 @@ class ObjectDef:
                 raise Bruinception(message.value)
             case self.int.TRY_DEF:
                 try:
-                    self.run_statement(statement[1], return_type)
+                    res = self.run_statement(statement[1], return_type)
                 except Bruinception as e:
                     # print(f'e: {e}')
                     message = [['string', 'exception', str(e)]]
@@ -375,7 +375,7 @@ class ObjectDef:
         for var in local_vars:
             var_type = var[0]
             var_name = var[1]
-            if var_type not in VariableDef.primitives:
+            if var_type not in VariableDef.primitives and var_type not in self.parametrized_mapping.keys():
                 c_def = self.int.find_class_def(var_type.split('@')[0])
 
             if var_name in var_names:
@@ -383,6 +383,7 @@ class ObjectDef:
                                f'Duplicate name {var_name} in local variable initialization')
                 
             if var_type not in VariableDef.primitives and \
+               var_type not in self.parametrized_mapping.keys() and \
                c_def.class_name not in self.int.class_names and \
                var_type not in c_def.spec_types.keys():
                 self.int.error(ET.TYPE_ERROR,
