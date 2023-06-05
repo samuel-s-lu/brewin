@@ -35,7 +35,6 @@ class ObjectDef:
         self.params_dict = dict()
 
         self.returned = False
-        # self.rtype = None
 
         self.stack = []
 
@@ -67,17 +66,22 @@ class ObjectDef:
         # if len(param_vals) != len(method.args):
         #     self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
-        # self.rtype = method.rtype
-        
-        try:
-            self.rtype = VariableDef.StrToType[self.rtype]
-        except:
-            pass
         try:
             method.rtype = VariableDef.StrToType[method.rtype]
         except:
             pass
-        # print(f'in call self.rtype: {method.rtype}')
+
+        if method.rtype not in VariableDef.primitives and '@' in method.rtype:
+            # print(f'method rtype: {method.rtype}')
+            class_name = method.rtype.split('@')[0]
+            types = method.rtype.split('@')[1:]
+            method.rtype = [class_name]
+            for t in types:
+                try:
+                    method.rtype.append(calling_obj.parametrized_mapping[t])
+                except KeyError:
+                    method.rtype.append(t)
+            method.rtype = '@'.join(method.rtype)
 
         statement = method.statement
 
@@ -270,6 +274,7 @@ class ObjectDef:
     
     def reset_methods(self):
         self.methods = copy.deepcopy(self.class_def.methods)
+        self.rtype = copy.deepcopy(self.class_def.class_name)
 
     
     def check_params(self, method_args, param_vals:list[VariableDef]) -> bool:
@@ -423,12 +428,12 @@ class ObjectDef:
 
 
     def check_rtype(self, ret_val:VariableDef, return_type):
-        # print(f'self.rtype: {return_type}')
-        # print(f'rev_val type: {ret_val.class_type}')
         if (return_type in VariableDef.primitives) and (return_type == ret_val.type):
             return
         elif (return_type not in VariableDef.primitives) and \
-             (ret_val.type is ObjectDef) and (return_type == ret_val.class_type or self.check_child(return_type, ret_val.class_type)):
+             (ret_val.type is ObjectDef) and \
+             (return_type == ret_val.class_type or \
+              self.check_child(return_type, ret_val.class_type)):
             return
         
         self.int.error(ET.TYPE_ERROR,
@@ -483,7 +488,6 @@ class ObjectDef:
     def set_var(self, target_name, new_val: VariableDef):
         var, var_scope = self.find_var(target_name)
 
-        # print(f'self.rtype: {self.rtype}')
         # print(f'target_name: {target_name}')
         # print(f'var: {var}')
         # print(f'new val: {new_val}')
@@ -540,6 +544,7 @@ class ObjectDef:
                     if exp == 'null' and return_type != 'void':
                         return create_anon_value(exp, return_type)
                     elif self.returned and exp == 'me':
+                        # print(f'anon value: {create_anon_value(self, return_type)}')
                         return create_anon_value(self, return_type)
                     else:
                         res = create_anon_value(exp)

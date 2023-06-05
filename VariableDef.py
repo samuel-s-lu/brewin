@@ -54,7 +54,16 @@ def create_anon_value(val, class_type=None):
         if val == IB.NULL_DEF:
             return VariableDef(class_type, VariableDef.ANON, None, True)
         else:
-            return VariableDef(class_type, VariableDef.ANON, val, True)
+            # if not val.parametrized_mapping:
+                return VariableDef(class_type, VariableDef.ANON, val, True)
+            # templated value
+            # else:
+            #     class_name = class_type.split('@')[0]
+            #     types = class_type.split('@')[1:]
+            #     class_type = [class_name]
+            #     for t in types:
+            #         class_type.append(val.parametrized_mapping[t])
+            #     return VariableDef('@'.join(class_type), VariableDef.ANON, val, True)
     if val == IB.TRUE_DEF:
         return VariableDef(bool, VariableDef.ANON, True, False)
     elif val == IB.FALSE_DEF:

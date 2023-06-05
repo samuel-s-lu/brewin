@@ -84,7 +84,8 @@ class Interpreter(IB):
                             types = field_type.split('@')[1:]
                             for t in types:
                                 if t not in VariableDef.primitives and \
-                                   t not in self.class_names:
+                                   t not in self.class_names and \
+                                   t not in new_class.spec_types.keys():
                                     super().error(ET.TYPE_ERROR,
                                                   f"Field {field_name} has illegal type {t} within its type")
 
@@ -108,7 +109,9 @@ class Interpreter(IB):
 
                             field_value = create_anon_value(token[3]).value
                             try:
-                                if field_type in self.class_names:
+                                # print(f'field type: {field_type}')
+                                # print(f'spec type keys: {new_class.spec_types.keys()}')
+                                if field_type.split('@')[0] in self.class_names:
                                     new_var = VariableDef(field_type, field_name, field_value, True)
                                 else:
                                     new_var = VariableDef(field_type, field_name, field_value, False)
@@ -146,7 +149,10 @@ class Interpreter(IB):
                                               f'Invalid method return type {method_rtype} for method {method_name}')
                             
                             if '@' in method_rtype:
-                                c_def = self.find_class_def(method_rtype.split('@')[0])
+                                if method_rtype.split('@')[0] == new_class_name:
+                                    c_def = new_class
+                                else:
+                                    c_def = self.find_class_def(method_rtype.split('@')[0])
                                 num_class_spec_types = len(c_def.spec_types.keys())
                                 num_return_spec_types = len(method_rtype.split('@')) - 1
 
@@ -159,7 +165,8 @@ class Interpreter(IB):
                                 types = method_rtype.split('@')[1:]
                                 for t in types:
                                     if t not in VariableDef.primitives and \
-                                    t not in self.class_names:
+                                       t not in self.class_names and \
+                                       t not in new_class.spec_types.keys():
                                         super().error(ET.TYPE_ERROR,
                                                     f"Method {method_name} has illegal type {t} within its return type")
 
