@@ -66,10 +66,19 @@ class ObjectDef:
         # if len(param_vals) != len(method.args):
         #     self.int.error(ET.TYPE_ERROR, "Incorrent number of parameters were given")
 
+        # try:
+        #     method.rtype = VariableDef.StrToType[method.rtype]
+        # except:
+        #     pass
+
+        # print(f'method rtype: {method.rtype}')
         try:
-            method.rtype = VariableDef.StrToType[method.rtype]
+            method.rtype = self.parametrized_mapping[method.rtype]
         except:
-            pass
+            try:
+                method.rtype = VariableDef.StrToType[method.rtype]
+            except:
+                pass
 
         if method.rtype not in VariableDef.primitives and '@' in method.rtype:
             # print(f'method rtype: {method.rtype}')
@@ -310,7 +319,10 @@ class ObjectDef:
             if self.parametrized_mapping:
                 # print(f'mapping: {self.parametrized_mapping}')
                 for arg in m.args:
-                    arg[0] = self.parametrized_mapping[arg[0]]
+                    try:
+                        arg[0] = self.parametrized_mapping[arg[0]]
+                    except:
+                        pass
                 # print(f'new args: {m.args}')
                 if m.name == method_name and self.check_params(m.args, param_vals):
                     return m, self
@@ -428,6 +440,10 @@ class ObjectDef:
 
 
     def check_rtype(self, ret_val:VariableDef, return_type):
+        try:
+            return_type = VariableDef.StrToType[return_type]
+        except:
+            pass
         if (return_type in VariableDef.primitives) and (return_type == ret_val.type):
             return
         elif (return_type not in VariableDef.primitives) and \
