@@ -107,6 +107,9 @@ class ClassDef:
                             field.type = VariableDef.StrToType[field.class_type]
                         except:
                             pass
+                        if not isinstance(field.value, field.type):
+                            self.int.error(ET.TYPE_ERROR,
+                                           f'Type mismatch for field {field.name}: {field.type} and {type(field.value)}')
         # print(f'new fields: {fields}\n')
         return fields
 

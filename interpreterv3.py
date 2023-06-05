@@ -111,7 +111,8 @@ class Interpreter(IB):
                             try:
                                 # print(f'field type: {field_type}')
                                 # print(f'spec type keys: {new_class.spec_types.keys()}')
-                                if field_type.split('@')[0] in self.class_names:
+                                if field_type.split('@')[0] in self.class_names or \
+                                   field_type in new_class.spec_types.keys():
                                     new_var = VariableDef(field_type, field_name, field_value, True)
                                 else:
                                     new_var = VariableDef(field_type, field_name, field_value, False)
